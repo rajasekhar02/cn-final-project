@@ -31,7 +31,6 @@ h = (k - (|z| mode k) + |z|) / k
 
 ---
 
-
 D(i,bs) = Distance between node and base station by its own coordinates
 
 D(i,j) = sqrt( pow(x<sub>i</sub> - x<sub>j</sub>, 2) + pow(y<sub>i</sub> - y<sub>j</sub>, 2) + pow(z<sub>i</sub> - z<sub>j</sub>, 2) )
@@ -67,7 +66,6 @@ E<sub>Rx</sub> = l * ε<sub>elec</sub>
 a(f)^d
 
 we can substitute the absorption coefficient in the Energy consumption formula
-
 
 a(f) = absorption Coefficient
 
