@@ -1,6 +1,6 @@
 # CN_final_project
 
-# Terminologies
+## Terminologies
 TWSN = Terrestrial Wireless Sensor Networks
 
 SC  = Small Cubes
@@ -66,7 +66,7 @@ E<sub>Rx</sub> = l * ε<sub>elec</sub>
 
 a(f)^d
 
-we can substituting the absorption coefficient in the Energy consumption formula
+we can substitute the absorption coefficient in the Energy consumption formula
 
 
 a(f) = absorption Coefficient
