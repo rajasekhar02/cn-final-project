@@ -1,4 +1,4 @@
-# CN_final_project
+# Computer Networkds Final Project
 
 ## Terminologies
 TWSN = Terrestrial Wireless Sensor Networks
