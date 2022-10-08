@@ -76,5 +76,5 @@ d = distance between transmitter and receiver
 ---
 ## Delay Model
 
-
+**Transmission and reception time (t<sub>ij</sub>)**
 
