@@ -48,7 +48,7 @@ d = distance between the transmitter and receiver
 
 d<sub>0</sub> = threshold distance to transmit data packets
 
-if d < d<sub>0<sub> : l * ε<sub>elec</sub> + l * ε<sub>fs</sub>d<sup>2</sup>
+if d < d<sub>0</sub> : l * ε<sub>elec</sub> + l * ε<sub>fs</sub>d<sup>2</sup>
 
 else : l * ε<sub>elec</sub> + l * ε<sub>mp</sub>d<sup>4</sup>
 
