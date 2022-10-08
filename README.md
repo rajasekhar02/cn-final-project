@@ -13,6 +13,8 @@ BC = Big Cube
 
 ---
 
+## 3D Geospatial Division 
+
 k = SC's edge length relates to the communication range of node c
 
 Calculation related to Nodes position and their SC identifier
@@ -36,6 +38,8 @@ D(i,j) = sqrt( pow(x<sub>i</sub> - x<sub>j</sub>, 2) + pow(y<sub>i</sub> - y<sub
 
 ---
 
+## Energy Consumption Model
+
 E<sub>tx</sub> = Energy Consumption for a node to transmit bit data packets to another node
 
 Below are the equation to calculate based on 
@@ -44,10 +48,9 @@ d = distance between the transmitter and receiver
 
 d<sub>0</sub> = threshold distance to transmit data packets
 
-if d < d<sub>0<sub> :
-    l * ε<sub>elec</sub> + l * ε<sub>fs</sub>d<sup>2</sup>
-else :
-    l * ε<sub>elec</sub> + l * ε<sub>mp</sub>d<sup>4</sup>
+if d < d<sub>0<sub> : l * ε<sub>elec</sub> + l * ε<sub>fs</sub>d<sup>2</sup>
+
+else : l * ε<sub>elec</sub> + l * ε<sub>mp</sub>d<sup>4</sup>
 
 ε<sub>fs</sub> = transmit amplifier  coefficient of free space
 
@@ -55,9 +58,16 @@ else :
 
 ---
 
+E<sub>Rx</sub> = Energy Consumption for node to receive bit data packets 
+
+E<sub>Rx</sub> = l * ε<sub>elec</sub> 
+
 ---
 
 a(f)^d
+
+we can substituting the absorption coefficient in the Energy consumption formula
+
 
 a(f) = absorption Coefficient
 
@@ -66,6 +76,7 @@ f = frequency of acoustic signal
 d = distance between transmitter and receiver 
 
 ---
+## Delay Model
 
 
 
