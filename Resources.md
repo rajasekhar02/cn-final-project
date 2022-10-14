@@ -5,3 +5,5 @@
 [ns3 Documentation](https://www.nsnam.org/docs/release/3.27/tutorial/ns-3-tutorial.pdf)
 
 root password: class
+
+[Mistake in downloading Packages](https://stackoverflow.com/questions/41919442/opensuse-linux-no-provider-for-libglib-dev-libgcrypt-dev-found)
