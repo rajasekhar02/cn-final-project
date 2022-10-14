@@ -4,3 +4,4 @@
 
 [ns3 Documentation](https://www.nsnam.org/docs/release/3.27/tutorial/ns-3-tutorial.pdf)
 
+root password: class
