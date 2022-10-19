@@ -18,6 +18,8 @@ NFP = Next-Hop finding problem
 lambda and Mu = the parameters to value the importance of energe and delay
 
 RT = Route Table
+
+Vertex(i) = possibility of being a next hop node
 ---
 
 ## 3D Geospatial Division 
