@@ -11,6 +11,13 @@ BS = Base Station node
 
 BC = Big Cube
 
+NCT = Neighbour Cluster Table
+
+NFP = Next-Hop finding problem
+
+lambda and Mu = the parameters to value the importance of energe and delay
+
+RT = Route Table
 ---
 
 ## 3D Geospatial Division 
