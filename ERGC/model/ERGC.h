@@ -10,7 +10,6 @@
 
 namespace ns3
 {
-
 	class NodeSceneParams
 	{
 	public:
@@ -42,15 +41,14 @@ namespace ns3
 		int simulation_rounds = 100;
 		int no_of_sinks = 1;
 		int no_of_nodes = 100;
-		int k_mtrs = 10;
+		int k_mtrs = 50;
 		int node_velocity = 1;
 		int node_communication_range_mtrs = 50;
 	};
 
-	class EnergyModel;
-	class DelayModel;
-	class NodeOperations;
-
+	// class EnergyModel;
+	// class DelayModel;
+	// class NodeOperations;
 	class EnergyModel
 	{
 	public:
@@ -78,9 +76,11 @@ namespace ns3
 	class NodeOperations
 	{
 	public:
+		static ns3::Vector getBaseStationPosition(SceneParams sp);
 		static double distanceBTW(ns3::Vector node1Position, ns3::Vector node2Position);
+		static ns3::Vector SCIndex(ns3::Vector nodePosition, int edgeLengthK);
+		static ns3::Vector SCIndex2(ns3::Vector nodePosition, int edgeLengthK);
 	};
-
 }
 
 #endif /* ERGC_H */

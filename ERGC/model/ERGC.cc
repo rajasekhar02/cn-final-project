@@ -48,4 +48,30 @@ namespace ns3
     return std::sqrt(distX + distY + distZ);
   }
 
+  ns3::Vector NodeOperations::SCIndex(ns3::Vector nodePosition, int edgeLengthK)
+  {
+    int xValue = std::ceil(nodePosition.x);
+    int yValue = std::ceil(nodePosition.y);
+    int zValue = std::abs(std::ceil(nodePosition.z));
+    int m = (edgeLengthK - xValue % edgeLengthK + xValue) / edgeLengthK;
+    int n = (edgeLengthK - yValue % edgeLengthK + yValue) / edgeLengthK;
+    int h = (edgeLengthK - zValue % edgeLengthK + zValue) / edgeLengthK;
+    return Vector(m, n, h);
+  }
+
+  ns3::Vector NodeOperations::SCIndex2(ns3::Vector nodePosition, int edgeLengthK)
+  {
+    int xValue = std::ceil(nodePosition.x);
+    int yValue = std::ceil(nodePosition.y);
+    int zValue = std::abs(std::ceil(nodePosition.z));
+    int m = xValue - (xValue % edgeLengthK);
+    int n = yValue - (yValue % edgeLengthK);
+    int h = zValue - (zValue % edgeLengthK);
+    return Vector(m, n, h);
+  }
+
+  ns3::Vector NodeOperations::getBaseStationPosition(SceneParams sp)
+  {
+    return Vector(sp.base_station_x, sp.base_station_y, sp.base_station_z);
+  }
 }
