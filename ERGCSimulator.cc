@@ -70,7 +70,7 @@ SceneParams sceneparams;
 NodeContainer nodesCon;
 NodeContainer baseStationCon;
 NodeContainer sinkCon;
-NetDeviceContainer devices;
+std::vector<ns3::Ptr<ns3::AquaSimNetDevice>> devices;
 Ptr<ListPositionAllocator> position;
 MobilityHelper nodeMobility;
 MobilityHelper baseAndSinkMobility;
@@ -142,7 +142,7 @@ void initNodes()
   for (NodeContainer::Iterator i = nodesCon.Begin(); i != nodesCon.End(); i++)
   {
     Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-    devices.Add(asHelper.Create(*i, newDevice));
+    devices.push_back(asHelper.Create(*i, newDevice));
   }
 
   std::cout << "Initializing Nodes Mobility Model" << std::endl;
@@ -158,7 +158,7 @@ void initBaseStation()
   socketHelper.Install(baseStationCon);
   Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
   position->Add(NodeOperations::getBaseStationPosition(sceneparams));
-  devices.Add(asHelper.Create(baseStationCon.Get(0), newDevice));
+  devices.push_back(asHelper.Create(baseStationCon.Get(0), newDevice));
   newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
 }
 
@@ -171,7 +171,7 @@ void initSinkNodes()
   {
     Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
     position->Add(Vector(250, 250, 250));
-    devices.Add(asHelper.Create(*i, newDevice));
+    devices.push_back(asHelper.Create(*i, newDevice));
     newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
   }
 
@@ -201,6 +201,7 @@ int main(int argc, char *argv[])
   asHelper = AquaSimHelper::Default();
   asHelper.SetChannel(channel.Create());
   asHelper.SetMac("ns3::AquaSimBroadcastMac");
+  asHelper.SetEnergyModel("ns3::AquaSimEnergyModel", "InitialEnergy", DoubleValue(20000.0));
   asHelper.SetRouting("ns3::AquaSimVBF", "Width", DoubleValue(500), "TargetPos", Vector3DValue(Vector(0, 0, 0)));
   position = CreateObject<ListPositionAllocator>();
   initNodes();
@@ -208,7 +209,7 @@ int main(int argc, char *argv[])
   initSinkNodes();
   initBaseAndSinkMobility();
   socket.SetAllDevices();
-  socket.SetPhysicalAddress(devices.Get(sceneparams.no_of_nodes)->GetAddress());
+  socket.SetPhysicalAddress(devices[sceneparams.no_of_nodes]->GetAddress());
   socket.SetProtocol(0);
 
   OnOffHelper app("ns3::PacketSocketFactory", Address(socket));
@@ -221,9 +222,12 @@ int main(int argc, char *argv[])
   apps.Start(Seconds(0.5));
   apps.Stop(Seconds(sceneparams.simulation_rounds));
   Packet::EnablePrinting();
+  Ptr<AquaSimEnergyModel> em = devices[0]->EnergyModel();
+  std::cout << "Energy: " << em->GetEnergy() << std::endl;
   Simulator::Stop(Seconds(sceneparams.simulation_rounds));
   Simulator::Run();
   asHelper.GetChannel()->PrintCounters();
+  std::cout << "Energy: " << em->GetEnergy() << std::endl;
   Simulator::Destroy();
   std::cout << "finish\n";
   return 0;
