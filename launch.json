@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // Pipe Launch calls waf with appropriate arguments
+            "name": "(gdb) Pipe Launch",
+            "type": "cppdbg",
+            "request": "launch",
+                      // my build folder is ${workspaceFolder}/build, substitute yours
+            "program": "${workspaceFolder}/build/scratch/${fileBasenameNoExtension}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "pipeTransport": {
+                "debuggerPath": "",  // leave blank
+                "pipeProgram": "${workspaceFolder}/waf",
+                // pipeArgs is essentially the entire waf command line arguments
+                "pipeArgs": [
+                    "--command-template", "\"",  // opening quote for command template
+                    "${debuggerCommand}",        // --interpreter lets vscode talk to gdb
+                    "--args", "%s",
+                    //"--verbose'",  // I don't think this will work in pipe mode, maybe
+                    "\"",  // closing quote for command template
+                    "--run", "${fileBasenameNoExtension}"],
+                "pipeCwd": ""
+            },
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }    
+    ]
+}
