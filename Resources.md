@@ -13,3 +13,5 @@
 https://www.youtube.com/watch?v=KI9djv3rah4
 
 [Enabling Log in NS3](https://www.nsnam.org/docs/release/3.7/tutorial/tutorial_21.html)
+
+[Node vs Netdevice](www.nsnam.org/docs/models/html/network-overview.html)
