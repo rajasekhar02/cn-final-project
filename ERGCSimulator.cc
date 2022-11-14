@@ -13,59 +13,6 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("ERGCSimulator");
 
-void dummy()
-{
-  SceneParams sceneparams;
-
-  NodeContainer nodesCon;
-  NodeContainer sinksCon;
-  NodeContainer senderCon;
-
-  nodesCon.Create(sceneparams.no_of_nodes);
-  sinksCon.Create(sceneparams.no_of_sinks);
-  senderCon.Create(1);
-
-  PacketSocketHelper socketHelper;
-  socketHelper.Install(nodesCon);
-  socketHelper.Install(sinksCon);
-  socketHelper.Install(senderCon);
-
-  // establish layers using helper's pre-build settings
-  AquaSimChannelHelper channel = AquaSimChannelHelper::Default();
-  channel.SetPropagation("ns3::AquaSimRangePropagation");
-  AquaSimHelper asHelper = AquaSimHelper::Default();
-  // AquaSimEnergyHelper energy;	//******this could instead be handled by node helper. ****/
-  asHelper.SetChannel(channel.Create());
-  asHelper.SetMac("ns3::AquaSimBroadcastMac");
-  asHelper.SetRouting("ns3::AquaSimVBF", "Width", DoubleValue(100), "TargetPos", Vector3DValue(Vector(190, 190, 0)));
-
-  /*
-   * Preset up mobility model for nodes and sinks here
-   */
-  MobilityHelper mobility;
-  MobilityHelper nodeMobility;
-  NetDeviceContainer devices;
-  Ptr<ListPositionAllocator> position = CreateObject<ListPositionAllocator>();
-
-  std::cout << "Creating Nodes\n";
-
-  for (NodeContainer::Iterator i = nodesCon.Begin(); i != nodesCon.End(); i++)
-  {
-    Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-    devices.Add(asHelper.Create(*i, newDevice));
-    newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
-  }
-
-  // for (NodeContainer::Iterator i = sinksCon.Begin(); i != sinksCon.End(); i++)
-  // {
-  //   Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-  //   position->Add(Vector(190, 190, 0));
-  //   devices.Add(asHelper.Create(*i, newDevice));
-  //   newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
-  // }
-  // std::cout << scenesimStop << " " << nodes << " " << sinks << std::endl;
-}
-
 SceneParams sceneparams;
 NodeContainer nodesCon;
 NodeContainer baseStationCon;
