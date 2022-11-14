@@ -11,3 +11,5 @@
 [leach algorithm configuration in ns3](https://github.com/aniqueazhar/NS3---Leach-Configured)
 
 https://www.youtube.com/watch?v=KI9djv3rah4
+
+[Enabling Log in NS3](https://www.nsnam.org/docs/release/3.7/tutorial/tutorial_21.html)
