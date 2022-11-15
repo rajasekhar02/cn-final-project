@@ -7,15 +7,17 @@
 #     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
-    module = bld.create_ns3_module('ERGC', ['network', 'energy', 'mobility', 'internet'])
+    module = bld.create_ns3_module('ERGC', ['network', 'energy', 'mobility', 'internet','applications'])
     module.source = [
-        'model/ERGC.cc',
-        'helper/ERGC-helper.cc',
+        'model/ergc.cc',
+        'model/ergc-application.cc',
+        'helper/ergc-application-helper.cc',
+        'helper/ergc-helper.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('ERGC')
     module_test.source = [
-        'test/ERGC-test-suite.cc',
+        'test/ergc-test-suite.cc',
         ]
     # Tests encapsulating example programs should be listed here
     if (bld.env['ENABLE_EXAMPLES']):
@@ -26,8 +28,10 @@ def build(bld):
     headers = bld(features='ns3header')
     headers.module = 'ERGC'
     headers.source = [
-        'model/ERGC.h',
-        'helper/ERGC-helper.h',
+        'model/ergc.h',
+        'model/ergc-application.h',
+        'helper/ergc-application-helper.h',
+        'helper/ergc-helper.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:

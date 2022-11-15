@@ -1,6 +1,6 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ns3/ERGC.h"
+#include "ns3/ergc.h"
 
 namespace ns3
 {

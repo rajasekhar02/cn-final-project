@@ -1,11 +1,10 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
-#include "ERGC-helper.h"
+#include "ergc-helper.h"
 
-namespace ns3 {
+namespace ns3
+{
 
-/* ... */
-
+    /* ... */
 
 }
-

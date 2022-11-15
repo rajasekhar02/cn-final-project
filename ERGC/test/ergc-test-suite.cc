@@ -1,7 +1,7 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 
 // Include a header file from your module to test.
-#include "ns3/ERGC.h"
+#include "ns3/ergc.h"
 
 // An essential include is test.h
 #include "ns3/test.h"
@@ -14,22 +14,22 @@ using namespace ns3;
 class ErgcTestCase1 : public TestCase
 {
 public:
-  ErgcTestCase1 ();
-  virtual ~ErgcTestCase1 ();
+  ErgcTestCase1();
+  virtual ~ErgcTestCase1();
 
 private:
-  virtual void DoRun (void);
+  virtual void DoRun(void);
 };
 
 // Add some help text to this case to describe what it is intended to test
-ErgcTestCase1::ErgcTestCase1 ()
-  : TestCase ("Ergc test case (does nothing)")
+ErgcTestCase1::ErgcTestCase1()
+    : TestCase("Ergc test case (does nothing)")
 {
 }
 
 // This destructor does nothing but we include it as a reminder that
 // the test case should clean up after itself
-ErgcTestCase1::~ErgcTestCase1 ()
+ErgcTestCase1::~ErgcTestCase1()
 {
 }
 
@@ -37,13 +37,12 @@ ErgcTestCase1::~ErgcTestCase1 ()
 // This method is the pure virtual method from class TestCase that every
 // TestCase must implement
 //
-void
-ErgcTestCase1::DoRun (void)
+void ErgcTestCase1::DoRun(void)
 {
   // A wide variety of test macros are available in src/core/test.h
-  NS_TEST_ASSERT_MSG_EQ (true, true, "true doesn't equal true for some reason");
+  NS_TEST_ASSERT_MSG_EQ(true, true, "true doesn't equal true for some reason");
   // Use this one for floating point comparisons
-  NS_TEST_ASSERT_MSG_EQ_TOL (0.01, 0.01, 0.001, "Numbers are not equal within tolerance");
+  NS_TEST_ASSERT_MSG_EQ_TOL(0.01, 0.01, 0.001, "Numbers are not equal within tolerance");
 }
 
 // The TestSuite class names the TestSuite, identifies what type of TestSuite,
@@ -53,16 +52,15 @@ ErgcTestCase1::DoRun (void)
 class ErgcTestSuite : public TestSuite
 {
 public:
-  ErgcTestSuite ();
+  ErgcTestSuite();
 };
 
-ErgcTestSuite::ErgcTestSuite ()
-  : TestSuite ("ERGC", UNIT)
+ErgcTestSuite::ErgcTestSuite()
+    : TestSuite("ERGC", UNIT)
 {
   // TestDuration for TestCase can be QUICK, EXTENSIVE or TAKES_FOREVER
-  AddTestCase (new ErgcTestCase1, TestCase::QUICK);
+  AddTestCase(new ErgcTestCase1, TestCase::QUICK);
 }
 
 // Do not forget to allocate an instance of this TestSuite
 static ErgcTestSuite sERGCTestSuite;
-
