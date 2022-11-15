@@ -3,11 +3,11 @@
 #include "ns3/mobility-module.h"
 #include "ns3/energy-module.h" //may not be needed here...
 #include "ns3/aqua-sim-ng-module.h"
-#include "ns3/applications-module.h"
+#include "ns3/ergc-application-helper.h"
 #include "ns3/log.h"
 #include "ns3/callback.h"
 
-#include "ns3/ERGC.h"
+#include "ns3/ergc.h"
 // #include "vector.h"
 using namespace ns3;
 
