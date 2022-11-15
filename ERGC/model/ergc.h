@@ -40,7 +40,7 @@ namespace ns3
 		int base_station_z = 0;
 		int simulation_rounds = 100;
 		int no_of_sinks = 1;
-		int no_of_nodes = 100;
+		int no_of_nodes = 400;
 		int k_mtrs = 50;
 		int node_velocity = 1;
 		int node_communication_range_mtrs = 50;
