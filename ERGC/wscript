@@ -7,10 +7,11 @@
 #     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
 
 def build(bld):
-    module = bld.create_ns3_module('ERGC', ['network', 'energy', 'mobility', 'internet','applications'])
+    module = bld.create_ns3_module('ERGC', ['network', 'energy', 'mobility', 'internet','applications','aqua-sim-ng'])
     module.source = [
         'model/ergc.cc',
         'model/ergc-application.cc',
+        'model/ergc-routing.cc',
         'helper/ergc-application-helper.cc',
         'helper/ergc-helper.cc',
         ]
@@ -30,6 +31,7 @@ def build(bld):
     headers.source = [
         'model/ergc.h',
         'model/ergc-application.h',
+        'model/ergc-routing.h',
         'helper/ergc-application-helper.h',
         'helper/ergc-helper.h',
         ]
