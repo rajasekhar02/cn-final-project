@@ -8,6 +8,7 @@ void cluster_head_selection(int k_in_mtrs, double residualEnergy, double distBtw
             Ci = residualEnergy / distBtnNodeiAndBS;
             Cj = residualEnergyOfJ / distBtnNodeiAndBS;
             if( Ci < Cj) {
+                // node i can choose the cluster but node j will make the node i as it child
                 ClusterT = 0;
                 Ti = 0;
             } else {
