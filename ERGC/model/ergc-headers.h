@@ -82,6 +82,39 @@ namespace ns3
         double m_residualEnrg;
     }; // class ClusterHeadSelectionHeader
 
+    class ClusterNeighborHeader : public Header
+    {
+    public:
+        ClusterNeighborHeader();
+        virtual ~ClusterNeighborHeader();
+        static TypeId GetTypeId();
+
+        AquaSimAddress GetClusterHeadId();
+        Vector GetNodePosition();
+        Vector GetSCIndex();
+        double GetDistBtwNodeAndBS();
+        double GetResidualEnrg();
+
+        void SetClusterHeadId(AquaSimAddress nodeId);
+        void SetNodePosition(Vector nodePosition);
+        void SetSCIndex(Vector scIndex);
+        void SetDistBtwNodeAndBS(double distBtwNodeAndBS);
+        void SetResidualEnrg(double residualEnrg);
+
+        // inherited methods
+        virtual uint32_t GetSerializedSize(void) const;
+        virtual void Serialize(Buffer::Iterator start) const;
+        virtual uint32_t Deserialize(Buffer::Iterator start);
+        virtual void Print(std::ostream &os) const;
+        virtual TypeId GetInstanceTypeId(void) const;
+
+    private:
+        AquaSimAddress m_clusterHeadId;
+        Vector m_nodePosition;
+        Vector m_scIndex;
+        double m_distBtwNodeAndBS;
+        double m_residualEnrg;
+    }; // class ClusterHeadSelectionHeader
 } // namespace ns3
 
 #endif /* ERGC_HEADER_ROUTING_H */
