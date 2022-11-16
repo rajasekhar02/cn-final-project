@@ -12,6 +12,8 @@ void cluster_head_selection(int k_in_mtrs, double residualEnergy, double distBtw
                 Ti = 0;
             } else {
                 // Node i can be the cluster head for node j
+                // Node i has property clusterlist and sizeOfClusterList
+                // Node i updates it cluster list
                 ClusterList[sizeOfClusterList] = j;
                 sizeOfClusterList++;
             }
