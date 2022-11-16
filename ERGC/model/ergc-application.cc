@@ -25,71 +25,71 @@ namespace ns3
 
     NS_LOG_COMPONENT_DEFINE("ERGCApplication");
 
-    NS_OBJECT_ENSURE_REGISTERED(OnOffApplication);
+    NS_OBJECT_ENSURE_REGISTERED(ERGCApplication);
 
     TypeId
-    OnOffApplication::GetTypeId(void)
+    ERGCApplication::GetTypeId(void)
     {
-        static TypeId tid = TypeId("ns3::OnOffApplication")
+        static TypeId tid = TypeId("ns3::ERGCApplication")
                                 .SetParent<Application>()
                                 .SetGroupName("Applications")
-                                .AddConstructor<OnOffApplication>()
+                                .AddConstructor<ERGCApplication>()
                                 .AddAttribute("DataRate", "The data rate in on state.",
                                               DataRateValue(DataRate("500kb/s")),
-                                              MakeDataRateAccessor(&OnOffApplication::m_cbrRate),
+                                              MakeDataRateAccessor(&ERGCApplication::m_cbrRate),
                                               MakeDataRateChecker())
                                 .AddAttribute("PacketSize", "The size of packets sent in on state",
                                               UintegerValue(512),
-                                              MakeUintegerAccessor(&OnOffApplication::m_pktSize),
+                                              MakeUintegerAccessor(&ERGCApplication::m_pktSize),
                                               MakeUintegerChecker<uint32_t>(1))
                                 .AddAttribute("Remote", "The address of the destination",
                                               AddressValue(),
-                                              MakeAddressAccessor(&OnOffApplication::m_peer),
+                                              MakeAddressAccessor(&ERGCApplication::m_peer),
                                               MakeAddressChecker())
                                 .AddAttribute("Local",
                                               "The Address on which to bind the socket. If not set, it is generated automatically.",
                                               AddressValue(),
-                                              MakeAddressAccessor(&OnOffApplication::m_local),
+                                              MakeAddressAccessor(&ERGCApplication::m_local),
                                               MakeAddressChecker())
                                 .AddAttribute("OnTime", "A RandomVariableStream used to pick the duration of the 'On' state.",
                                               StringValue("ns3::ConstantRandomVariable[Constant=1.0]"),
-                                              MakePointerAccessor(&OnOffApplication::m_onTime),
+                                              MakePointerAccessor(&ERGCApplication::m_onTime),
                                               MakePointerChecker<RandomVariableStream>())
                                 .AddAttribute("OffTime", "A RandomVariableStream used to pick the duration of the 'Off' state.",
                                               StringValue("ns3::ConstantRandomVariable[Constant=1.0]"),
-                                              MakePointerAccessor(&OnOffApplication::m_offTime),
+                                              MakePointerAccessor(&ERGCApplication::m_offTime),
                                               MakePointerChecker<RandomVariableStream>())
                                 .AddAttribute("MaxBytes",
                                               "The total number of bytes to send. Once these bytes are sent, "
                                               "no packet is sent again, even in on state. The value zero means "
                                               "that there is no limit.",
                                               UintegerValue(0),
-                                              MakeUintegerAccessor(&OnOffApplication::m_maxBytes),
+                                              MakeUintegerAccessor(&ERGCApplication::m_maxBytes),
                                               MakeUintegerChecker<uint64_t>())
                                 .AddAttribute("Protocol", "The type of protocol to use. This should be "
                                                           "a subclass of ns3::SocketFactory",
                                               TypeIdValue(UdpSocketFactory::GetTypeId()),
-                                              MakeTypeIdAccessor(&OnOffApplication::m_tid),
+                                              MakeTypeIdAccessor(&ERGCApplication::m_tid),
                                               // This should check for SocketFactory as a parent
                                               MakeTypeIdChecker())
                                 .AddAttribute("EnableSeqTsSizeHeader",
                                               "Enable use of SeqTsSizeHeader for sequence number and timestamp",
                                               BooleanValue(false),
-                                              MakeBooleanAccessor(&OnOffApplication::m_enableSeqTsSizeHeader),
+                                              MakeBooleanAccessor(&ERGCApplication::m_enableSeqTsSizeHeader),
                                               MakeBooleanChecker())
                                 .AddTraceSource("Tx", "A new packet is created and is sent",
-                                                MakeTraceSourceAccessor(&OnOffApplication::m_txTrace),
+                                                MakeTraceSourceAccessor(&ERGCApplication::m_txTrace),
                                                 "ns3::Packet::TracedCallback")
                                 .AddTraceSource("TxWithAddresses", "A new packet is created and is sent",
-                                                MakeTraceSourceAccessor(&OnOffApplication::m_txTraceWithAddresses),
+                                                MakeTraceSourceAccessor(&ERGCApplication::m_txTraceWithAddresses),
                                                 "ns3::Packet::TwoAddressTracedCallback")
                                 .AddTraceSource("TxWithSeqTsSize", "A new packet is created with SeqTsSizeHeader",
-                                                MakeTraceSourceAccessor(&OnOffApplication::m_txTraceWithSeqTsSize),
+                                                MakeTraceSourceAccessor(&ERGCApplication::m_txTraceWithSeqTsSize),
                                                 "ns3::PacketSink::SeqTsSizeCallback");
         return tid;
     }
 
-    OnOffApplication::OnOffApplication()
+    ERGCApplication::ERGCApplication()
         : m_socket(0),
           m_connected(false),
           m_residualBits(0),
@@ -100,36 +100,27 @@ namespace ns3
         NS_LOG_FUNCTION(this);
     }
 
-    OnOffApplication::~OnOffApplication()
+    ERGCApplication::~ERGCApplication()
     {
         NS_LOG_FUNCTION(this);
     }
 
     void
-    OnOffApplication::SetMaxBytes(uint64_t maxBytes)
+    ERGCApplication::SetMaxBytes(uint64_t maxBytes)
     {
         NS_LOG_FUNCTION(this << maxBytes);
         m_maxBytes = maxBytes;
     }
 
     Ptr<Socket>
-    OnOffApplication::GetSocket(void) const
+    ERGCApplication::GetSocket(void) const
     {
         NS_LOG_FUNCTION(this);
         return m_socket;
     }
 
-    int64_t
-    OnOffApplication::AssignStreams(int64_t stream)
-    {
-        NS_LOG_FUNCTION(this << stream);
-        m_onTime->SetStream(stream);
-        m_offTime->SetStream(stream + 1);
-        return 2;
-    }
-
     void
-    OnOffApplication::DoDispose(void)
+    ERGCApplication::DoDispose(void)
     {
         NS_LOG_FUNCTION(this);
 
@@ -141,7 +132,7 @@ namespace ns3
     }
 
     // Application Methods
-    void OnOffApplication::StartApplication() // Called at time specified by Start
+    void ERGCApplication::StartApplication() // Called at time specified by Start
     {
         NS_LOG_FUNCTION(this);
 
@@ -181,8 +172,8 @@ namespace ns3
             m_socket->ShutdownRecv();
 
             m_socket->SetConnectCallback(
-                MakeCallback(&OnOffApplication::ConnectionSucceeded, this),
-                MakeCallback(&OnOffApplication::ConnectionFailed, this));
+                MakeCallback(&ERGCApplication::ConnectionSucceeded, this),
+                MakeCallback(&ERGCApplication::ConnectionFailed, this));
         }
         m_cbrRateFailSafe = m_cbrRate;
 
@@ -194,7 +185,7 @@ namespace ns3
         ScheduleStartEvent();
     }
 
-    void OnOffApplication::StopApplication() // Called at time specified by Stop
+    void ERGCApplication::StopApplication() // Called at time specified by Stop
     {
         NS_LOG_FUNCTION(this);
 
@@ -205,11 +196,11 @@ namespace ns3
         }
         else
         {
-            NS_LOG_WARN("OnOffApplication found null socket to close in StopApplication");
+            NS_LOG_WARN("ERGCApplication found null socket to close in StopApplication");
         }
     }
 
-    void OnOffApplication::CancelEvents()
+    void ERGCApplication::CancelEvents()
     {
         NS_LOG_FUNCTION(this);
 
@@ -233,7 +224,7 @@ namespace ns3
     }
 
     // Event handlers
-    void OnOffApplication::StartSending()
+    void ERGCApplication::StartSending()
     {
         NS_LOG_FUNCTION(this);
         m_lastStartTime = Simulator::Now();
@@ -241,7 +232,7 @@ namespace ns3
         ScheduleStopEvent();
     }
 
-    void OnOffApplication::StopSending()
+    void ERGCApplication::StopSending()
     {
         NS_LOG_FUNCTION(this);
         CancelEvents();
@@ -250,7 +241,7 @@ namespace ns3
     }
 
     // Private helpers
-    void OnOffApplication::ScheduleNextTx()
+    void ERGCApplication::ScheduleNextTx()
     {
         NS_LOG_FUNCTION(this);
 
@@ -263,7 +254,7 @@ namespace ns3
                                   static_cast<double>(m_cbrRate.GetBitRate()))); // Time till next packet
             NS_LOG_LOGIC("nextTime = " << nextTime.As(Time::S));
             m_sendEvent = Simulator::Schedule(nextTime,
-                                              &OnOffApplication::SendPacket, this);
+                                              &ERGCApplication::SendPacket, this);
         }
         else
         { // All done, cancel any pending events
@@ -271,25 +262,25 @@ namespace ns3
         }
     }
 
-    void OnOffApplication::ScheduleStartEvent()
+    void ERGCApplication::ScheduleStartEvent()
     { // Schedules the event to start sending data (switch to the "On" state)
         NS_LOG_FUNCTION(this);
 
         Time offInterval = Seconds(m_offTime->GetValue());
         NS_LOG_LOGIC("start at " << offInterval.As(Time::S));
-        m_startStopEvent = Simulator::Schedule(offInterval, &OnOffApplication::StartSending, this);
+        m_startStopEvent = Simulator::Schedule(offInterval, &ERGCApplication::StartSending, this);
     }
 
-    void OnOffApplication::ScheduleStopEvent()
+    void ERGCApplication::ScheduleStopEvent()
     { // Schedules the event to stop sending data (switch to "Off" state)
         NS_LOG_FUNCTION(this);
 
         Time onInterval = Seconds(m_onTime->GetValue());
         NS_LOG_LOGIC("stop at " << onInterval.As(Time::S));
-        m_startStopEvent = Simulator::Schedule(onInterval, &OnOffApplication::StopSending, this);
+        m_startStopEvent = Simulator::Schedule(onInterval, &ERGCApplication::StopSending, this);
     }
 
-    void OnOffApplication::SendPacket()
+    void ERGCApplication::SendPacket()
     {
         NS_LOG_FUNCTION(this);
 
@@ -358,13 +349,13 @@ namespace ns3
         ScheduleNextTx();
     }
 
-    void OnOffApplication::ConnectionSucceeded(Ptr<Socket> socket)
+    void ERGCApplication::ConnectionSucceeded(Ptr<Socket> socket)
     {
         NS_LOG_FUNCTION(this << socket);
         m_connected = true;
     }
 
-    void OnOffApplication::ConnectionFailed(Ptr<Socket> socket)
+    void ERGCApplication::ConnectionFailed(Ptr<Socket> socket)
     {
         NS_LOG_FUNCTION(this << socket);
         NS_FATAL_ERROR("Can't connect");

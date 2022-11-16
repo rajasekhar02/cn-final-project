@@ -13,7 +13,7 @@ namespace ns3
 
     OnOffHelper::OnOffHelper(std::string protocol, Address address)
     {
-        m_factory.SetTypeId("ns3::OnOffApplication");
+        m_factory.SetTypeId("ns3::ERGCApplication");
         m_factory.Set("Protocol", StringValue(protocol));
         m_factory.Set("Remote", AddressValue(address));
     }
@@ -56,26 +56,6 @@ namespace ns3
         node->AddApplication(app);
 
         return app;
-    }
-
-    int64_t
-    OnOffHelper::AssignStreams(NodeContainer c, int64_t stream)
-    {
-        int64_t currentStream = stream;
-        Ptr<Node> node;
-        for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
-        {
-            node = (*i);
-            for (uint32_t j = 0; j < node->GetNApplications(); j++)
-            {
-                Ptr<OnOffApplication> onoff = DynamicCast<OnOffApplication>(node->GetApplication(j));
-                if (onoff)
-                {
-                    currentStream += onoff->AssignStreams(currentStream);
-                }
-            }
-        }
-        return (currentStream - stream);
     }
 
     void

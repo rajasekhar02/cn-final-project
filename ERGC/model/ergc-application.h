@@ -19,7 +19,7 @@ namespace ns3
 
     /**
      * \ingroup applications
-     * \defgroup onoff OnOffApplication
+     * \defgroup onoff ERGCApplication
      *
      * This traffic generator follows an On/Off pattern: after
      * Application::StartApplication
@@ -70,7 +70,7 @@ namespace ns3
      * the header via trace sources.  Note that the continuity of the sequence
      * number may be disrupted across On/Off cycles.
      */
-    class OnOffApplication : public Application
+    class ERGCApplication : public Application
     {
     public:
         /**
@@ -79,9 +79,9 @@ namespace ns3
          */
         static TypeId GetTypeId(void);
 
-        OnOffApplication();
+        ERGCApplication();
 
-        virtual ~OnOffApplication();
+        virtual ~ERGCApplication();
 
         /**
          * \brief Set the total number of bytes to send.
@@ -98,15 +98,6 @@ namespace ns3
          * \return pointer to associated socket
          */
         Ptr<Socket> GetSocket(void) const;
-
-        /**
-         * \brief Assign a fixed random variable stream number to the random variables
-         * used by this model.
-         *
-         * \param stream first stream index to use
-         * \return the number of stream indices assigned by this model
-         */
-        int64_t AssignStreams(int64_t stream);
 
     protected:
         virtual void DoDispose(void);
