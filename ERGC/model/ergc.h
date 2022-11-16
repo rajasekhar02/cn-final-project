@@ -3,6 +3,7 @@
 #include "ns3/packet.h"
 #include "ns3/ptr.h"
 #include "ns3/nstime.h"
+#include "ns3/object.h"
 #include <cmath>
 
 #ifndef ERGC_H
@@ -43,12 +44,12 @@ namespace ns3
 		int no_of_nodes = 400;
 		int k_mtrs = 50; // edit the node_communication_range_mtrs also to the same value
 		int node_velocity = 1;
-		int node_communication_range_mtrs = std::sqrt(3)*2*50;
+		int node_communication_range_mtrs = std::sqrt(3) * 2 * 50;
 	};
 
 	// class EnergyModel;
 	// class DelayModel;
-	// class NodeOperations;
+	// class ERGCNodeProps;
 	class EnergyModel
 	{
 	public:
@@ -73,9 +74,15 @@ namespace ns3
 		static ns3::Time totalDelay(ns3::Vector node1Position, ns3::Vector node2Position, ns3::Ptr<ns3::Packet> pkt);
 	};
 
-	class NodeOperations
+	class ERGCNodeProps : public ns3::Object
 	{
 	public:
+		std::string nodeType;
+		ns3::Vector scIndex;
+		int k_mtrs;
+		ERGCNodeProps();
+
+		static TypeId GetTypeId(void);
 		static ns3::Vector getBaseStationPosition(SceneParams sp);
 		static double distanceBTW(ns3::Vector node1Position, ns3::Vector node2Position);
 		static ns3::Vector SCIndex(ns3::Vector nodePosition, int edgeLengthK);

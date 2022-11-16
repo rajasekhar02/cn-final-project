@@ -11,7 +11,7 @@
 namespace ns3
 {
 
-    OnOffHelper::OnOffHelper(std::string protocol, Address address)
+    ERGCAppHelper::ERGCAppHelper(std::string protocol, Address address)
     {
         m_factory.SetTypeId("ns3::ERGCApplication");
         m_factory.Set("Protocol", StringValue(protocol));
@@ -19,26 +19,26 @@ namespace ns3
     }
 
     void
-    OnOffHelper::SetAttribute(std::string name, const AttributeValue &value)
+    ERGCAppHelper::SetAttribute(std::string name, const AttributeValue &value)
     {
         m_factory.Set(name, value);
     }
 
     ApplicationContainer
-    OnOffHelper::Install(Ptr<Node> node) const
+    ERGCAppHelper::Install(Ptr<Node> node) const
     {
         return ApplicationContainer(InstallPriv(node));
     }
 
     ApplicationContainer
-    OnOffHelper::Install(std::string nodeName) const
+    ERGCAppHelper::Install(std::string nodeName) const
     {
         Ptr<Node> node = Names::Find<Node>(nodeName);
         return ApplicationContainer(InstallPriv(node));
     }
 
     ApplicationContainer
-    OnOffHelper::Install(NodeContainer c) const
+    ERGCAppHelper::Install(NodeContainer c) const
     {
         ApplicationContainer apps;
         for (NodeContainer::Iterator i = c.Begin(); i != c.End(); ++i)
@@ -50,7 +50,7 @@ namespace ns3
     }
 
     Ptr<Application>
-    OnOffHelper::InstallPriv(Ptr<Node> node) const
+    ERGCAppHelper::InstallPriv(Ptr<Node> node) const
     {
         Ptr<Application> app = m_factory.Create<Application>();
         node->AddApplication(app);
@@ -59,7 +59,7 @@ namespace ns3
     }
 
     void
-    OnOffHelper::SetConstantRate(DataRate dataRate, uint32_t packetSize)
+    ERGCAppHelper::SetConstantRate(DataRate dataRate, uint32_t packetSize)
     {
         m_factory.Set("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1000]"));
         m_factory.Set("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));

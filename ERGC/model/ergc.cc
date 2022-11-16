@@ -8,7 +8,7 @@ namespace ns3
   /* ... */
   double EnergyModel::getEnergyUsedForTransmission(int noOfBitsInAPacket, ns3::Vector sourcePosition, ns3::Vector destinationPosition)
   {
-    double distBtwSrcAndDest = NodeOperations::distanceBTW(sourcePosition, destinationPosition);
+    double distBtwSrcAndDest = ERGCNodeProps::distanceBTW(sourcePosition, destinationPosition);
     if (distBtwSrcAndDest < NodeSceneParams::DISTANCE_THRESHOLD_MTRS)
     {
       return noOfBitsInAPacket * (NodeSceneParams::RADIO_DISSP_JOULES_PER_BIT + std::pow(NodeSceneParams::ABSORPTION_COEFF, distBtwSrcAndDest) * distBtwSrcAndDest * distBtwSrcAndDest);
@@ -32,7 +32,7 @@ namespace ns3
   }
   ns3::Time DelayModel::delayDuePropagation(ns3::Vector node1Position, ns3::Vector node2Position)
   {
-    return ns3::Time(NodeOperations::distanceBTW(node1Position, node2Position) / NodeSceneParams::SOUND_VELOCITY_MTRS_PER_SEC);
+    return ns3::Time(ERGCNodeProps::distanceBTW(node1Position, node2Position) / NodeSceneParams::SOUND_VELOCITY_MTRS_PER_SEC);
   }
 
   ns3::Time DelayModel::totalDelay(ns3::Vector node1Position, ns3::Vector node2Position, ns3::Ptr<ns3::Packet> pkt)
@@ -40,7 +40,21 @@ namespace ns3
     return ns3::Time(delayForTransmissionAndReceptionTime(pkt) + delayDuePropagation(node1Position, node2Position));
   }
 
-  double NodeOperations::distanceBTW(ns3::Vector node1Position, ns3::Vector node2Position)
+  ERGCNodeProps::ERGCNodeProps()
+  {
+    nodeType = "";
+    scIndex = ns3::Vector(0, 0, 0);
+    k_mtrs = 0;
+  }
+  TypeId
+  ERGCNodeProps::GetTypeId(void)
+  {
+    static TypeId tid = TypeId("ns3::ERGCNodeProps")
+                            .SetParent<ns3::Object>()
+                            .AddConstructor<ERGCNodeProps>();
+    return tid;
+  }
+  double ERGCNodeProps::distanceBTW(ns3::Vector node1Position, ns3::Vector node2Position)
   {
     double distX = (node1Position.x - node2Position.x) * (node1Position.x - node2Position.x);
     double distY = (node1Position.y - node2Position.y) * (node1Position.y - node2Position.y);
@@ -48,7 +62,7 @@ namespace ns3
     return std::sqrt(distX + distY + distZ);
   }
 
-  ns3::Vector NodeOperations::SCIndex(ns3::Vector nodePosition, int edgeLengthK)
+  ns3::Vector ERGCNodeProps::SCIndex(ns3::Vector nodePosition, int edgeLengthK)
   {
     int xValue = std::ceil(nodePosition.x);
     int yValue = std::ceil(nodePosition.y);
@@ -59,7 +73,7 @@ namespace ns3
     return Vector(m, n, h);
   }
 
-  ns3::Vector NodeOperations::SCIndex2(ns3::Vector nodePosition, int edgeLengthK)
+  ns3::Vector ERGCNodeProps::SCIndex2(ns3::Vector nodePosition, int edgeLengthK)
   {
     int xValue = std::ceil(nodePosition.x);
     int yValue = std::ceil(nodePosition.y);
@@ -70,7 +84,7 @@ namespace ns3
     return Vector(m, n, h);
   }
 
-  ns3::Vector NodeOperations::getBaseStationPosition(SceneParams sp)
+  ns3::Vector ERGCNodeProps::getBaseStationPosition(SceneParams sp)
   {
     return Vector(sp.base_station_x, sp.base_station_y, sp.base_station_z);
   }

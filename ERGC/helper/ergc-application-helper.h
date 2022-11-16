@@ -1,5 +1,5 @@
-#ifndef ON_OFF_HELPER_H
-#define ON_OFF_HELPER_H
+#ifndef ERGC_APP_H
+#define ERGC_APP_H
 
 #include <stdint.h>
 #include <string>
@@ -21,11 +21,11 @@ namespace ns3
      * \brief A helper to make it easier to instantiate an ns3::OnOffApplication
      * on a set of nodes.
      */
-    class OnOffHelper
+    class ERGCAppHelper
     {
     public:
         /**
-         * Create an OnOffHelper to make it easier to work with OnOffApplications
+         * Create an ERGCAppHelper to make it easier to work with OnOffApplications
          *
          * \param protocol the name of the protocol to use to send traffic
          *        by the applications. This string identifies the socket
@@ -34,7 +34,7 @@ namespace ns3
          * \param address the address of the remote node to send traffic
          *        to.
          */
-        OnOffHelper(std::string protocol, Address address);
+        ERGCAppHelper(std::string protocol, Address address);
 
         /**
          * Helper function used to set the underlying application attributes.
