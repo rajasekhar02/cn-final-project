@@ -8,6 +8,7 @@
 #include "ns3/callback.h"
 
 #include "ns3/ergc.h"
+#include "ns3/ergc-headers.h"
 // #include "vector.h"
 using namespace ns3;
 
@@ -60,7 +61,7 @@ void printNodesSCIndices()
   for (uint32_t i = 0; i < nNodes; i++)
   {
     ns3::Vector nodePosition = nodesCon.Get(i)->GetObject<MobilityModel>()->GetPosition();
-    SCs.push_back(std::make_pair(NodeOperations::SCIndex2(nodePosition, sceneparams.k_mtrs), nodePosition));
+    SCs.push_back(std::make_pair(NodeOperations::SCIndex(nodePosition, sceneparams.k_mtrs), nodePosition));
   }
 
   auto comparator = [](const std::pair<ns3::Vector, ns3::Vector> &a, const std::pair<ns3::Vector, ns3::Vector> &b)
@@ -77,6 +78,28 @@ void printNodesSCIndices()
   for (int i = 0; i < (int)SCs.size(); i++)
   {
     std::cout << SCs[i].first << " " << SCs[i].second << " " << NodeOperations::distanceBTW(SCs[i].second, NodeOperations::getBaseStationPosition(sceneparams)) << std::endl;
+  }
+}
+
+void printClusterHeadSelectionHeader()
+{
+  // uint32_t nNodes = nodesCon.GetN();
+  ClusterHeadSelectionHeader clhsHeader, deserializedHeader;
+  Buffer m_buffer;
+  for (uint32_t i = 0; i < 1; i++)
+  {
+    Vector nodePosition = nodesCon.Get(i)->GetObject<MobilityModel>()->GetPosition();
+    clhsHeader.SetNodeId(AquaSimAddress::ConvertFrom(devices[i]->GetAddress()));
+    clhsHeader.SetNodePosition(nodePosition);
+    clhsHeader.SetSCIndex(NodeOperations::SCIndex(nodePosition, sceneparams.k_mtrs));
+    clhsHeader.SetDistBtwNodeAndBS(NodeOperations::distanceBTW(nodePosition, NodeOperations::getBaseStationPosition(sceneparams)));
+    Ptr<AquaSimEnergyModel> em = devices[i]->EnergyModel();
+    clhsHeader.SetResidualEnrg(em->GetEnergy());
+    std::cout << clhsHeader << std::endl;
+    m_buffer.AddAtStart(clhsHeader.GetSerializedSize());
+    clhsHeader.Serialize(m_buffer.Begin());
+    deserializedHeader.Deserialize(m_buffer.Begin());
+    std::cout << deserializedHeader << std::endl;
   }
 }
 
@@ -155,26 +178,27 @@ int main(int argc, char *argv[])
   initBaseStation();
   initSinkNodes();
   initBaseAndSinkMobility();
-  socket.SetAllDevices();
-  socket.SetPhysicalAddress(devices[sceneparams.no_of_nodes]->GetAddress());
-  socket.SetProtocol(0);
+  printClusterHeadSelectionHeader();
+  // socket.SetAllDevices();
+  // socket.SetPhysicalAddress(devices[sceneparams.no_of_nodes]->GetAddress());
+  // socket.SetProtocol(0);
 
-  OnOffHelper app("ns3::PacketSocketFactory", Address(socket));
-  app.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0066]"));
-  app.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.9934]"));
-  app.SetAttribute("DataRate", DataRateValue(PacketParams::DATA_TRANSMISSION_RATE_BITS_PER_SEC));
-  app.SetAttribute("PacketSize", UintegerValue(PacketParams::PACKET_SIZE_BITS));
+  // OnOffHelper app("ns3::PacketSocketFactory", Address(socket));
+  // app.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0066]"));
+  // app.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.9934]"));
+  // app.SetAttribute("DataRate", DataRateValue(PacketParams::DATA_TRANSMISSION_RATE_BITS_PER_SEC));
+  // app.SetAttribute("PacketSize", UintegerValue(PacketParams::PACKET_SIZE_BITS));
 
-  ApplicationContainer apps = app.Install(nodesCon);
-  apps.Start(Seconds(0.5));
-  apps.Stop(Seconds(sceneparams.simulation_rounds));
-  Packet::EnablePrinting();
-  Ptr<AquaSimEnergyModel> em = devices[0]->EnergyModel();
-  std::cout << "Energy: " << em->GetEnergy() << std::endl;
+  // ApplicationContainer apps = app.Install(nodesCon);
+  // apps.Start(Seconds(0.5));
+  // apps.Stop(Seconds(sceneparams.simulation_rounds));
+  // Packet::EnablePrinting();
+  // Ptr<AquaSimEnergyModel> em = devices[0]->EnergyModel();
+  // std::cout << "Energy: " << em->GetEnergy() << std::endl;
   Simulator::Stop(Seconds(sceneparams.simulation_rounds));
   Simulator::Run();
-  asHelper.GetChannel()->PrintCounters();
-  std::cout << "Energy: " << em->GetEnergy() << std::endl;
+  // asHelper.GetChannel()->PrintCounters();
+  // std::cout << "Energy: " << em->GetEnergy() << std::endl;
   Simulator::Destroy();
   std::cout << "finish\n";
   return 0;
