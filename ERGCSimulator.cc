@@ -115,7 +115,7 @@ void initNodes()
     Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
     ergcNodeProps->nodeType = "UWS";
     (*i)->AggregateObject(ergcNodeProps);
-    devices.Add(asHelper.Create(*i, newDevice));
+    devices.Add(asHelper.CreateWithoutRouting(*i, newDevice));
   }
 
   std::cout << "Initializing Nodes Mobility Model" << std::endl;
@@ -133,8 +133,9 @@ void initBaseStation()
   position->Add(ERGCNodeProps::getBaseStationPosition(sceneparams));
   Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
   ergcNodeProps->nodeType = "BS";
+  ergcNodeProps->k_mtrs = sceneparams.k_mtrs;
   baseStationCon.Get(0)->AggregateObject(ergcNodeProps);
-  devices.Add(asHelper.Create(baseStationCon.Get(0), newDevice));
+  devices.Add(asHelper.CreateWithoutRouting(baseStationCon.Get(0), newDevice));
   newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
 }
 
@@ -157,6 +158,7 @@ int main(int argc, char *argv[])
   asHelper.SetChannel(channel.Create());
   asHelper.SetMac("ns3::AquaSimBroadcastMac");
   asHelper.SetEnergyModel("ns3::AquaSimEnergyModel", "InitialEnergy", DoubleValue(2.0));
+  // asHelper.SetRouting("ms3::Object");
   // asHelper.SetRouting("ns3::AquaSimVBF", "Width", DoubleValue(500), "TargetPos", Vector3DValue(Vector(0, 0, 0)));
   position = CreateObject<ListPositionAllocator>();
   initNodes();
@@ -173,13 +175,13 @@ int main(int argc, char *argv[])
   app.SetAttribute("DataRate", DataRateValue(PacketParams::DATA_TRANSMISSION_RATE_BITS_PER_SEC));
   app.SetAttribute("PacketSize", UintegerValue(PacketParams::PACKET_SIZE_BITS));
 
-  ApplicationContainer baseApps = app.Install(baseStationCon);
-  baseApps.Start(Seconds(0.5));
-  baseApps.Stop(Seconds(sceneparams.simulation_rounds));
-
   ApplicationContainer apps = app.Install(nodesCon);
-  apps.Start(Seconds(1));
+  apps.Start(Seconds(0.5));
   apps.Stop(Seconds(sceneparams.simulation_rounds));
+
+  ApplicationContainer baseApps = app.Install(baseStationCon);
+  baseApps.Start(Seconds(1));
+  baseApps.Stop(Seconds(sceneparams.simulation_rounds));
 
   // Packet::EnablePrinting();
 
