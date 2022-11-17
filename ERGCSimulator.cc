@@ -18,7 +18,7 @@ SceneParams sceneparams;
 NodeContainer nodesCon;
 NodeContainer baseStationCon;
 NodeContainer sinkCon;
-std::vector<ns3::Ptr<ns3::AquaSimNetDevice>> devices;
+NetDeviceContainer devices;
 Ptr<ListPositionAllocator> position;
 MobilityHelper nodeMobility;
 MobilityHelper baseAndSinkMobility;
@@ -40,8 +40,8 @@ void printNodesPosSortByDistBtwNodeAndBS()
 
   auto comparator = [](const ns3::Vector &a, const ns3::Vector &b)
   {
-    double nodeADisFromBase = NodeOperations::distanceBTW(a, NodeOperations::getBaseStationPosition(sceneparams));
-    double nodeBDisFromBase = NodeOperations::distanceBTW(b, NodeOperations::getBaseStationPosition(sceneparams));
+    double nodeADisFromBase = ERGCNodeProps::distanceBTW(a, ERGCNodeProps::getBaseStationPosition(sceneparams));
+    double nodeBDisFromBase = ERGCNodeProps::distanceBTW(b, ERGCNodeProps::getBaseStationPosition(sceneparams));
     return nodeADisFromBase == nodeBDisFromBase ? 0 : (nodeADisFromBase < nodeBDisFromBase);
   };
 
@@ -61,13 +61,13 @@ void printNodesSCIndices()
   for (uint32_t i = 0; i < nNodes; i++)
   {
     ns3::Vector nodePosition = nodesCon.Get(i)->GetObject<MobilityModel>()->GetPosition();
-    SCs.push_back(std::make_pair(NodeOperations::SCIndex(nodePosition, sceneparams.k_mtrs), nodePosition));
+    SCs.push_back(std::make_pair(ERGCNodeProps::SCIndex(nodePosition, sceneparams.k_mtrs), nodePosition));
   }
 
   auto comparator = [](const std::pair<ns3::Vector, ns3::Vector> &a, const std::pair<ns3::Vector, ns3::Vector> &b)
   {
-    double nodeADisFromBase = NodeOperations::distanceBTW(a.second, NodeOperations::getBaseStationPosition(sceneparams));
-    double nodeBDisFromBase = NodeOperations::distanceBTW(b.second, NodeOperations::getBaseStationPosition(sceneparams));
+    double nodeADisFromBase = ERGCNodeProps::distanceBTW(a.second, ERGCNodeProps::getBaseStationPosition(sceneparams));
+    double nodeBDisFromBase = ERGCNodeProps::distanceBTW(b.second, ERGCNodeProps::getBaseStationPosition(sceneparams));
     return nodeADisFromBase == nodeBDisFromBase ? 0 : (nodeADisFromBase < nodeBDisFromBase);
   };
 
@@ -77,7 +77,7 @@ void printNodesSCIndices()
 
   for (int i = 0; i < (int)SCs.size(); i++)
   {
-    std::cout << SCs[i].first << " " << SCs[i].second << " " << NodeOperations::distanceBTW(SCs[i].second, NodeOperations::getBaseStationPosition(sceneparams)) << std::endl;
+    std::cout << SCs[i].first << " " << SCs[i].second << " " << ERGCNodeProps::distanceBTW(SCs[i].second, ERGCNodeProps::getBaseStationPosition(sceneparams)) << std::endl;
   }
 }
 
@@ -89,11 +89,12 @@ void printClusterHeadSelectionHeader()
   for (uint32_t i = 0; i < 1; i++)
   {
     Vector nodePosition = nodesCon.Get(i)->GetObject<MobilityModel>()->GetPosition();
-    clhsHeader.SetNodeId(AquaSimAddress::ConvertFrom(devices[i]->GetAddress()));
+    Ptr<AquaSimNetDevice> aquaNetDevice = devices.Get(0)->GetObject<AquaSimNetDevice>();
+    clhsHeader.SetNodeId(AquaSimAddress::ConvertFrom(aquaNetDevice->GetAddress()));
     clhsHeader.SetNodePosition(nodePosition);
-    clhsHeader.SetSCIndex(NodeOperations::SCIndex(nodePosition, sceneparams.k_mtrs));
-    clhsHeader.SetDistBtwNodeAndBS(NodeOperations::distanceBTW(nodePosition, NodeOperations::getBaseStationPosition(sceneparams)));
-    Ptr<AquaSimEnergyModel> em = devices[i]->EnergyModel();
+    clhsHeader.SetSCIndex(ERGCNodeProps::SCIndex(nodePosition, sceneparams.k_mtrs));
+    clhsHeader.SetDistBtwNodeAndBS(ERGCNodeProps::distanceBTW(nodePosition, ERGCNodeProps::getBaseStationPosition(sceneparams)));
+    Ptr<AquaSimEnergyModel> em = aquaNetDevice->EnergyModel();
     clhsHeader.SetResidualEnrg(em->GetEnergy());
     std::cout << clhsHeader << std::endl;
     m_buffer.AddAtStart(clhsHeader.GetSerializedSize());
@@ -112,7 +113,7 @@ void initNodes()
   for (NodeContainer::Iterator i = nodesCon.Begin(); i != nodesCon.End(); i++)
   {
     Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-    devices.push_back(asHelper.Create(*i, newDevice));
+    devices.Add(asHelper.Create(*i, newDevice));
   }
 
   std::cout << "Initializing Nodes Mobility Model" << std::endl;
@@ -127,8 +128,8 @@ void initBaseStation()
   baseStationCon.Create(1);
   socketHelper.Install(baseStationCon);
   Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-  position->Add(NodeOperations::getBaseStationPosition(sceneparams));
-  devices.push_back(asHelper.Create(baseStationCon.Get(0), newDevice));
+  position->Add(ERGCNodeProps::getBaseStationPosition(sceneparams));
+  devices.Add(asHelper.Create(baseStationCon.Get(0), newDevice));
   newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
 }
 
@@ -141,7 +142,7 @@ void initSinkNodes()
   {
     Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
     position->Add(Vector(250, 250, 250));
-    devices.push_back(asHelper.Create(*i, newDevice));
+    devices.Add(asHelper.Create(*i, newDevice));
     newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
   }
 
@@ -193,8 +194,9 @@ int main(int argc, char *argv[])
   // apps.Start(Seconds(0.5));
   // apps.Stop(Seconds(sceneparams.simulation_rounds));
   // Packet::EnablePrinting();
-  // Ptr<AquaSimEnergyModel> em = devices[0]->EnergyModel();
-  // std::cout << "Energy: " << em->GetEnergy() << std::endl;
+
+  Ptr<AquaSimEnergyModel> em = devices.Get(0)->GetObject<AquaSimNetDevice>()->EnergyModel();
+  std::cout << "Energy: " << em->GetEnergy() << std::endl;
   Simulator::Stop(Seconds(sceneparams.simulation_rounds));
   Simulator::Run();
   // asHelper.GetChannel()->PrintCounters();
