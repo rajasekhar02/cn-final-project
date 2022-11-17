@@ -108,6 +108,12 @@ namespace ns3
         virtual void StopApplication(void);  // Called at time specified by Stop
 
         // helpers
+        void handleBSStartEvent();
+
+        void handleNodeStartEvent();
+
+        void SendPacketWithK();
+        void HandleRead(Ptr<Socket> socket);
         /**
          * \brief Cancel all pending events.
          */

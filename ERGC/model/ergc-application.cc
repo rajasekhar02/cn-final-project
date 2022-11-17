@@ -21,6 +21,8 @@
 #include "ns3/aqua-sim-net-device.h"
 #include "ergc-application.h"
 #include "ergc.h"
+#include "ergc-headers.h"
+#include "ergc.h"
 
 namespace ns3
 {
@@ -137,59 +139,149 @@ namespace ns3
     void ERGCApplication::StartApplication() // Called at time specified by Start
     {
         NS_LOG_FUNCTION(this);
+        PacketSocketAddress pSocket;
+        pSocket.SetAllDevices();
+        // socket.SetSingleDevice (devices.Get(0)->GetIfIndex());
+        pSocket.SetPhysicalAddress((Address)AquaSimAddress::GetBroadcast());
+        pSocket.SetProtocol(0);
+        this->m_peer = pSocket;
+        if (!m_socket)
+        {
+            m_socket = Socket::CreateSocket(GetNode(), m_tid);
+            int ret = -1;
+
+            if (!m_local.IsInvalid())
+            {
+                NS_ABORT_MSG_IF((Inet6SocketAddress::IsMatchingType(m_peer) && InetSocketAddress::IsMatchingType(m_local)) ||
+                                    (InetSocketAddress::IsMatchingType(m_peer) && Inet6SocketAddress::IsMatchingType(m_local)),
+                                "Incompatible peer and local address IP version");
+                ret = m_socket->Bind(m_local);
+            }
+            else
+            {
+                if (Inet6SocketAddress::IsMatchingType(m_peer))
+                {
+                    ret = m_socket->Bind6();
+                }
+                else if (InetSocketAddress::IsMatchingType(m_peer) ||
+                         PacketSocketAddress::IsMatchingType(m_peer))
+                {
+                    ret = m_socket->Bind();
+                }
+            }
+
+            if (ret == -1)
+            {
+                NS_FATAL_ERROR("Failed to bind socket");
+            }
+
+            m_socket->Connect(m_peer);
+            m_socket->SetAllowBroadcast(true);
+            // m_socket->ShutdownRecv();
+
+            m_socket->SetConnectCallback(
+                MakeCallback(&ERGCApplication::ConnectionSucceeded, this),
+                MakeCallback(&ERGCApplication::ConnectionFailed, this));
+        }
+        m_socket->SetRecvCallback(MakeCallback(&ERGCApplication::HandleRead, this));
         std::cout << "Application Started" << std::endl;
-
-        std::cout << GetNode()->GetObject<ERGCNodeProps>()->nodeType << std::endl;
-        // Create the socket if not already
-        // if (!m_socket)
-        // {
-        //     m_socket = Socket::CreateSocket(GetNode(), m_tid);
-        //     int ret = -1;
-
-        //     if (!m_local.IsInvalid())
-        //     {
-        //         NS_ABORT_MSG_IF((Inet6SocketAddress::IsMatchingType(m_peer) && InetSocketAddress::IsMatchingType(m_local)) ||
-        //                             (InetSocketAddress::IsMatchingType(m_peer) && Inet6SocketAddress::IsMatchingType(m_local)),
-        //                         "Incompatible peer and local address IP version");
-        //         ret = m_socket->Bind(m_local);
-        //     }
-        //     else
-        //     {
-        //         if (Inet6SocketAddress::IsMatchingType(m_peer))
-        //         {
-        //             ret = m_socket->Bind6();
-        //         }
-        //         else if (InetSocketAddress::IsMatchingType(m_peer) ||
-        //                  PacketSocketAddress::IsMatchingType(m_peer))
-        //         {
-        //             ret = m_socket->Bind();
-        //         }
-        //     }
-
-        //     if (ret == -1)
-        //     {
-        //         NS_FATAL_ERROR("Failed to bind socket");
-        //     }
-
-        //     m_socket->Connect(m_peer);
-        //     m_socket->SetAllowBroadcast(true);
-        //     m_socket->ShutdownRecv();
-
-        //     m_socket->SetConnectCallback(
-        //         MakeCallback(&ERGCApplication::ConnectionSucceeded, this),
-        //         MakeCallback(&ERGCApplication::ConnectionFailed, this));
-        // }
-        // m_cbrRateFailSafe = m_cbrRate;
-
-        // // Insure no pending event
-        // CancelEvents();
-        // // If we are not yet connected, there is nothing to do here
-        // // The ConnectionComplete upcall will start timers at that time
-        // // if (!m_connected) return;
-        // ScheduleStartEvent();
+        std::string nodeType = GetNode()->GetObject<ERGCNodeProps>()->nodeType;
+        if (nodeType == "BS")
+        {
+            handleBSStartEvent();
+        }
+        else
+        {
+            handleNodeStartEvent();
+        }
     }
 
-    void ERGCApplication::StopApplication() // Called at time specified by Stop
+    void
+    ERGCApplication::handleBSStartEvent()
+    {
+        m_startStopEvent = Simulator::Schedule(Simulator::Now(), &ERGCApplication::SendPacketWithK, this);
+    }
+    void
+    ERGCApplication::handleNodeStartEvent()
+    {
+        std::cout << "Node started" << std::endl;
+        // std::cout << GetNode()->GetObject<ERGCNodeProps>()->k_mtrs << std::endl;
+    }
+
+    void ERGCApplication::SendPacketWithK()
+    {
+        NS_LOG_FUNCTION(this);
+        NS_ASSERT(m_sendEvent.IsExpired());
+        int k_mtrs = GetNode()->GetObject<ERGCNodeProps>()->k_mtrs;
+        CubeLengthHeader cubeLengthHeader;
+        cubeLengthHeader.SetKMtrs(k_mtrs);
+        Ptr<Packet> packet = Create<Packet>(cubeLengthHeader.GetSerializedSize());
+        // int actual =
+        packet->AddHeader(cubeLengthHeader);
+        m_socket->Send(packet);
+        // if ((unsigned)actual == m_pktSize)
+        // {
+        //     m_txTrace(packet);
+        //     m_totBytes += m_pktSize;
+        //     m_unsentPacket = 0;
+        //     Address localAddress;
+        //     m_socket->GetSockName(localAddress);
+        //     if (InetSocketAddress::IsMatchingType(m_peer))
+        //     {
+        //         NS_LOG_INFO("At time " << Simulator::Now().As(Time::S)
+        //                                << " on-off application sent "
+        //                                << packet->GetSize() << " bytes to "
+        //                                << InetSocketAddress::ConvertFrom(m_peer).GetIpv4()
+        //                                << " port " << InetSocketAddress::ConvertFrom(m_peer).GetPort()
+        //                                << " total Tx " << m_totBytes << " bytes");
+        //         m_txTraceWithAddresses(packet, localAddress, InetSocketAddress::ConvertFrom(m_peer));
+        //     }
+        //     else if (Inet6SocketAddress::IsMatchingType(m_peer))
+        //     {
+        //         NS_LOG_INFO("At time " << Simulator::Now().As(Time::S)
+        //                                << " on-off application sent "
+        //                                << packet->GetSize() << " bytes to "
+        //                                << Inet6SocketAddress::ConvertFrom(m_peer).GetIpv6()
+        //                                << " port " << Inet6SocketAddress::ConvertFrom(m_peer).GetPort()
+        //                                << " total Tx " << m_totBytes << " bytes");
+        //         m_txTraceWithAddresses(packet, localAddress, Inet6SocketAddress::ConvertFrom(m_peer));
+        //     }
+        // }
+        // else
+        // {
+        //     NS_LOG_DEBUG("Unable to send packet; actual " << actual << " size " << m_pktSize << "; caching for later attempt");
+        //     m_unsentPacket = packet;
+        // }
+        // m_residualBits = 0;
+        m_lastStartTime = Simulator::Now();
+        // ScheduleNextTx();
+    }
+
+    void
+    ERGCApplication::HandleRead(Ptr<Socket> socket)
+    {
+        NS_LOG_FUNCTION(this << socket);
+        Ptr<Packet> packet;
+        Address from;
+        Address localAddress;
+        while ((packet = socket->Recv()))
+        {
+            socket->GetSockName(localAddress);
+            if (packet->GetSize() > 0)
+            {
+                // uint32_t receivedSize = packet->GetSize();
+                CubeLengthHeader cubeLengthTs;
+                if (packet->PeekHeader(cubeLengthTs))
+                {
+                    packet->RemoveHeader(cubeLengthTs);
+                    std::cout << cubeLengthTs << std::endl;
+                }
+            }
+        }
+    }
+
+    void
+    ERGCApplication::StopApplication() // Called at time specified by Stop
     {
         NS_LOG_FUNCTION(this);
 
