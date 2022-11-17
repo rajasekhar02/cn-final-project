@@ -17,11 +17,10 @@ NS_LOG_COMPONENT_DEFINE("ERGCSimulator");
 SceneParams sceneparams;
 NodeContainer nodesCon;
 NodeContainer baseStationCon;
-NodeContainer sinkCon;
 NetDeviceContainer devices;
 Ptr<ListPositionAllocator> position;
 MobilityHelper nodeMobility;
-MobilityHelper baseAndSinkMobility;
+MobilityHelper baseMobility;
 PacketSocketHelper socketHelper;
 AquaSimChannelHelper channel;
 AquaSimHelper asHelper;
@@ -113,6 +112,9 @@ void initNodes()
   for (NodeContainer::Iterator i = nodesCon.Begin(); i != nodesCon.End(); i++)
   {
     Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
+    Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
+    ergcNodeProps->nodeType = "UWS";
+    (*i)->AggregateObject(ergcNodeProps);
     devices.Add(asHelper.Create(*i, newDevice));
   }
 
@@ -129,37 +131,19 @@ void initBaseStation()
   socketHelper.Install(baseStationCon);
   Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
   position->Add(ERGCNodeProps::getBaseStationPosition(sceneparams));
+  Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
+  ergcNodeProps->nodeType = "BS";
+  baseStationCon.Get(0)->AggregateObject(ergcNodeProps);
   devices.Add(asHelper.Create(baseStationCon.Get(0), newDevice));
   newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
 }
 
-void initSinkNodes()
-{
-  sinkCon.Create(sceneparams.no_of_sinks);
-  socketHelper.Install(sinkCon);
-
-  for (NodeContainer::Iterator i = sinkCon.Begin(); i != sinkCon.End(); i++)
-  {
-    Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-    position->Add(Vector(250, 250, 250));
-    devices.Add(asHelper.Create(*i, newDevice));
-    newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
-  }
-
-  Ptr<Node> sinkNode = sinkCon.Get(0);
-  TypeId psfid = TypeId::LookupByName("ns3::PacketSocketFactory");
-
-  Ptr<Socket> sinkSocket = Socket::CreateSocket(sinkNode, psfid);
-  sinkSocket->Bind(socket);
-}
-
-void initBaseAndSinkMobility()
+void initBaseMobility()
 {
   std::cout << "Initializing BaseStation and Sink Mobility Model" << std::endl;
-  baseAndSinkMobility.SetPositionAllocator(position);
-  baseAndSinkMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-  baseAndSinkMobility.Install(sinkCon);
-  baseAndSinkMobility.Install(baseStationCon);
+  baseMobility.SetPositionAllocator(position);
+  baseMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+  baseMobility.Install(baseStationCon);
 }
 int main(int argc, char *argv[])
 {
@@ -173,30 +157,34 @@ int main(int argc, char *argv[])
   asHelper.SetChannel(channel.Create());
   asHelper.SetMac("ns3::AquaSimBroadcastMac");
   asHelper.SetEnergyModel("ns3::AquaSimEnergyModel", "InitialEnergy", DoubleValue(2.0));
-  asHelper.SetRouting("ns3::AquaSimVBF", "Width", DoubleValue(500), "TargetPos", Vector3DValue(Vector(0, 0, 0)));
+  // asHelper.SetRouting("ns3::AquaSimVBF", "Width", DoubleValue(500), "TargetPos", Vector3DValue(Vector(0, 0, 0)));
   position = CreateObject<ListPositionAllocator>();
   initNodes();
   initBaseStation();
-  initSinkNodes();
-  initBaseAndSinkMobility();
+  initBaseMobility();
   printClusterHeadSelectionHeader();
   // socket.SetAllDevices();
   // socket.SetPhysicalAddress(devices[sceneparams.no_of_nodes]->GetAddress());
   // socket.SetProtocol(0);
 
-  // OnOffHelper app("ns3::PacketSocketFactory", Address(socket));
+  ERGCAppHelper app("ns3::PacketSocketFactory");
   // app.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0066]"));
   // app.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.9934]"));
-  // app.SetAttribute("DataRate", DataRateValue(PacketParams::DATA_TRANSMISSION_RATE_BITS_PER_SEC));
-  // app.SetAttribute("PacketSize", UintegerValue(PacketParams::PACKET_SIZE_BITS));
+  app.SetAttribute("DataRate", DataRateValue(PacketParams::DATA_TRANSMISSION_RATE_BITS_PER_SEC));
+  app.SetAttribute("PacketSize", UintegerValue(PacketParams::PACKET_SIZE_BITS));
 
-  // ApplicationContainer apps = app.Install(nodesCon);
-  // apps.Start(Seconds(0.5));
-  // apps.Stop(Seconds(sceneparams.simulation_rounds));
+  ApplicationContainer baseApps = app.Install(baseStationCon);
+  baseApps.Start(Seconds(0.5));
+  baseApps.Stop(Seconds(sceneparams.simulation_rounds));
+
+  ApplicationContainer apps = app.Install(nodesCon);
+  apps.Start(Seconds(1));
+  apps.Stop(Seconds(sceneparams.simulation_rounds));
+
   // Packet::EnablePrinting();
 
-  Ptr<AquaSimEnergyModel> em = devices.Get(0)->GetObject<AquaSimNetDevice>()->EnergyModel();
-  std::cout << "Energy: " << em->GetEnergy() << std::endl;
+  // Ptr<AquaSimEnergyModel> em = devices.Get(0)->GetObject<AquaSimNetDevice>()->EnergyModel();
+  // std::cout << "Energy: " << em->GetEnergy() << std::endl;
   Simulator::Stop(Seconds(sceneparams.simulation_rounds));
   Simulator::Run();
   // asHelper.GetChannel()->PrintCounters();
