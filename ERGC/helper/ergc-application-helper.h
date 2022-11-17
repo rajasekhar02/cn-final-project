@@ -18,14 +18,14 @@ namespace ns3
 
     /**
      * \ingroup onoff
-     * \brief A helper to make it easier to instantiate an ns3::OnOffApplication
+     * \brief A helper to make it easier to instantiate an ns3::ERGCApp
      * on a set of nodes.
      */
     class ERGCAppHelper
     {
     public:
         /**
-         * Create an ERGCAppHelper to make it easier to work with OnOffApplications
+         * Create an ERGCAppHelper to make it easier to work with ERGCApps
          *
          * \param protocol the name of the protocol to use to send traffic
          *        by the applications. This string identifies the socket
@@ -34,7 +34,7 @@ namespace ns3
          * \param address the address of the remote node to send traffic
          *        to.
          */
-        ERGCAppHelper(std::string protocol, Address address);
+        ERGCAppHelper(std::string protocol); //  Address address
 
         /**
          * Helper function used to set the underlying application attributes.
@@ -55,29 +55,29 @@ namespace ns3
         void SetConstantRate(DataRate dataRate, uint32_t packetSize = 512);
 
         /**
-         * Install an ns3::OnOffApplication on each node of the input container
+         * Install an ns3::ERGCApp on each node of the input container
          * configured with all the attributes set with SetAttribute.
          *
-         * \param c NodeContainer of the set of nodes on which an OnOffApplication
+         * \param c NodeContainer of the set of nodes on which an ERGCApp
          * will be installed.
          * \returns Container of Ptr to the applications installed.
          */
         ApplicationContainer Install(NodeContainer c) const;
 
         /**
-         * Install an ns3::OnOffApplication on the node configured with all the
+         * Install an ns3::ERGCApp on the node configured with all the
          * attributes set with SetAttribute.
          *
-         * \param node The node on which an OnOffApplication will be installed.
+         * \param node The node on which an ERGCApp will be installed.
          * \returns Container of Ptr to the applications installed.
          */
         ApplicationContainer Install(Ptr<Node> node) const;
 
         /**
-         * Install an ns3::OnOffApplication on the node configured with all the
+         * Install an ns3::ERGCApp on the node configured with all the
          * attributes set with SetAttribute.
          *
-         * \param nodeName The node on which an OnOffApplication will be installed.
+         * \param nodeName The node on which an ERGCApp will be installed.
          * \returns Container of Ptr to the applications installed.
          */
         ApplicationContainer Install(std::string nodeName) const;
@@ -89,7 +89,7 @@ namespace ns3
          * called by the user.
          *
          * \param stream first stream index to use
-         * \param c NodeContainer of the set of nodes for which the OnOffApplication
+         * \param c NodeContainer of the set of nodes for which the ERGCApp
          *          should be modified to use a fixed stream
          * \return the number of stream indices assigned by this helper
          */
@@ -97,10 +97,10 @@ namespace ns3
 
     private:
         /**
-         * Install an ns3::OnOffApplication on the node configured with all the
+         * Install an ns3::ERGCApp on the node configured with all the
          * attributes set with SetAttribute.
          *
-         * \param node The node on which an OnOffApplication will be installed.
+         * \param node The node on which an ERGCApp will be installed.
          * \returns Ptr to the application installed.
          */
         Ptr<Application> InstallPriv(Ptr<Node> node) const;
@@ -110,4 +110,4 @@ namespace ns3
 
 } // namespace ns3
 
-#endif /* ON_OFF_HELPER_H */
+#endif /* ERGC_APP_H */

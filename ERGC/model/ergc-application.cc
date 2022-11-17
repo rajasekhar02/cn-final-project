@@ -14,11 +14,13 @@
 #include "ns3/packet.h"
 #include "ns3/uinteger.h"
 #include "ns3/trace-source-accessor.h"
-#include "ergc-application.h"
 #include "ns3/udp-socket-factory.h"
 #include "ns3/string.h"
 #include "ns3/pointer.h"
 #include "ns3/boolean.h"
+#include "ns3/aqua-sim-net-device.h"
+#include "ergc-application.h"
+#include "ergc.h"
 
 namespace ns3
 {
@@ -135,54 +137,56 @@ namespace ns3
     void ERGCApplication::StartApplication() // Called at time specified by Start
     {
         NS_LOG_FUNCTION(this);
+        std::cout << "Application Started" << std::endl;
 
+        std::cout << GetNode()->GetObject<ERGCNodeProps>()->nodeType << std::endl;
         // Create the socket if not already
-        if (!m_socket)
-        {
-            m_socket = Socket::CreateSocket(GetNode(), m_tid);
-            int ret = -1;
+        // if (!m_socket)
+        // {
+        //     m_socket = Socket::CreateSocket(GetNode(), m_tid);
+        //     int ret = -1;
 
-            if (!m_local.IsInvalid())
-            {
-                NS_ABORT_MSG_IF((Inet6SocketAddress::IsMatchingType(m_peer) && InetSocketAddress::IsMatchingType(m_local)) ||
-                                    (InetSocketAddress::IsMatchingType(m_peer) && Inet6SocketAddress::IsMatchingType(m_local)),
-                                "Incompatible peer and local address IP version");
-                ret = m_socket->Bind(m_local);
-            }
-            else
-            {
-                if (Inet6SocketAddress::IsMatchingType(m_peer))
-                {
-                    ret = m_socket->Bind6();
-                }
-                else if (InetSocketAddress::IsMatchingType(m_peer) ||
-                         PacketSocketAddress::IsMatchingType(m_peer))
-                {
-                    ret = m_socket->Bind();
-                }
-            }
+        //     if (!m_local.IsInvalid())
+        //     {
+        //         NS_ABORT_MSG_IF((Inet6SocketAddress::IsMatchingType(m_peer) && InetSocketAddress::IsMatchingType(m_local)) ||
+        //                             (InetSocketAddress::IsMatchingType(m_peer) && Inet6SocketAddress::IsMatchingType(m_local)),
+        //                         "Incompatible peer and local address IP version");
+        //         ret = m_socket->Bind(m_local);
+        //     }
+        //     else
+        //     {
+        //         if (Inet6SocketAddress::IsMatchingType(m_peer))
+        //         {
+        //             ret = m_socket->Bind6();
+        //         }
+        //         else if (InetSocketAddress::IsMatchingType(m_peer) ||
+        //                  PacketSocketAddress::IsMatchingType(m_peer))
+        //         {
+        //             ret = m_socket->Bind();
+        //         }
+        //     }
 
-            if (ret == -1)
-            {
-                NS_FATAL_ERROR("Failed to bind socket");
-            }
+        //     if (ret == -1)
+        //     {
+        //         NS_FATAL_ERROR("Failed to bind socket");
+        //     }
 
-            m_socket->Connect(m_peer);
-            m_socket->SetAllowBroadcast(true);
-            m_socket->ShutdownRecv();
+        //     m_socket->Connect(m_peer);
+        //     m_socket->SetAllowBroadcast(true);
+        //     m_socket->ShutdownRecv();
 
-            m_socket->SetConnectCallback(
-                MakeCallback(&ERGCApplication::ConnectionSucceeded, this),
-                MakeCallback(&ERGCApplication::ConnectionFailed, this));
-        }
-        m_cbrRateFailSafe = m_cbrRate;
+        //     m_socket->SetConnectCallback(
+        //         MakeCallback(&ERGCApplication::ConnectionSucceeded, this),
+        //         MakeCallback(&ERGCApplication::ConnectionFailed, this));
+        // }
+        // m_cbrRateFailSafe = m_cbrRate;
 
-        // Insure no pending event
-        CancelEvents();
-        // If we are not yet connected, there is nothing to do here
-        // The ConnectionComplete upcall will start timers at that time
-        // if (!m_connected) return;
-        ScheduleStartEvent();
+        // // Insure no pending event
+        // CancelEvents();
+        // // If we are not yet connected, there is nothing to do here
+        // // The ConnectionComplete upcall will start timers at that time
+        // // if (!m_connected) return;
+        // ScheduleStartEvent();
     }
 
     void ERGCApplication::StopApplication() // Called at time specified by Stop

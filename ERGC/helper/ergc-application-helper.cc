@@ -11,11 +11,11 @@
 namespace ns3
 {
 
-    ERGCAppHelper::ERGCAppHelper(std::string protocol, Address address)
+    ERGCAppHelper::ERGCAppHelper(std::string protocol) // Address address
     {
         m_factory.SetTypeId("ns3::ERGCApplication");
         m_factory.Set("Protocol", StringValue(protocol));
-        m_factory.Set("Remote", AddressValue(address));
+        // m_factory.Set("Remote", AddressValue(address));
     }
 
     void
@@ -61,8 +61,8 @@ namespace ns3
     void
     ERGCAppHelper::SetConstantRate(DataRate dataRate, uint32_t packetSize)
     {
-        m_factory.Set("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1000]"));
-        m_factory.Set("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
+        // m_factory.Set("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=1000]"));
+        // m_factory.Set("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0]"));
         m_factory.Set("DataRate", DataRateValue(dataRate));
         m_factory.Set("PacketSize", UintegerValue(packetSize));
     }
