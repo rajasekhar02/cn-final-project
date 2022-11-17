@@ -37,10 +37,30 @@
 namespace ns3
 {
 
+    class CubeLengthHeader : public Header
+    {
+    public:
+        CubeLengthHeader();
+        virtual ~CubeLengthHeader();
+        static TypeId GetTypeId();
+
+        uint32_t GetKMtrs();
+        void SetKMtrs(uint32_t k_mtrs);
+        // inherited methods
+        virtual uint32_t GetSerializedSize(void) const;
+        virtual void Serialize(Buffer::Iterator start) const;
+        virtual uint32_t Deserialize(Buffer::Iterator start);
+        virtual void Print(std::ostream &os) const;
+        virtual TypeId GetInstanceTypeId(void) const;
+
+    private:
+        uint32_t m_k_mtrs;
+    };
+
     /**
      * \ingroup ergc
      *
-     * \brief Dynamic routing header
+     * \brief Cluster Header header
      * Cluster-Msg includes
      * node identifier,
      * node coordinates (x,y,z),

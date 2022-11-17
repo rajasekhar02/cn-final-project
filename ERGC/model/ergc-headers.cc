@@ -4,7 +4,73 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE("ClusterHeadSelectionHeader");
+// ----------------------------------------------------------------
+// cube length message
+NS_LOG_COMPONENT_DEFINE("ergc-headers");
+NS_OBJECT_ENSURE_REGISTERED(CubeLengthHeader);
+
+CubeLengthHeader::CubeLengthHeader()
+{
+}
+
+CubeLengthHeader::~CubeLengthHeader()
+{
+}
+
+TypeId
+CubeLengthHeader::GetTypeId()
+{
+    static TypeId tid = TypeId("ns3::CubeLengthHeader")
+                            .SetParent<Header>()
+                            .AddConstructor<CubeLengthHeader>();
+    return tid;
+}
+
+uint32_t
+CubeLengthHeader::Deserialize(Buffer::Iterator start)
+{
+    Buffer::Iterator i = start;
+    m_k_mtrs = i.ReadU32();
+    return GetSerializedSize();
+}
+
+uint32_t
+CubeLengthHeader::GetSerializedSize(void) const
+{
+    // reserved bytes for header
+    return 4;
+}
+
+void CubeLengthHeader::Serialize(Buffer::Iterator start) const
+{
+    Buffer::Iterator i = start;
+    i.WriteU32(m_k_mtrs);
+}
+
+void CubeLengthHeader::Print(std::ostream &os) const
+{
+    os << "CubeLength header is: k_mtrs=" << m_k_mtrs << "\n";
+}
+
+TypeId
+CubeLengthHeader::GetInstanceTypeId(void) const
+{
+    return GetTypeId();
+}
+
+uint32_t CubeLengthHeader::GetKMtrs()
+{
+    return m_k_mtrs;
+}
+
+void CubeLengthHeader::SetKMtrs(uint32_t k_mtrs)
+{
+    m_k_mtrs = k_mtrs;
+}
+
+// ----------------------------------------------------------------
+// cluster head selection header
+// NS_LOG_COMPONENT_DEFINE("ClusterHeadSelectionHeader");
 NS_OBJECT_ENSURE_REGISTERED(ClusterHeadSelectionHeader);
 
 ClusterHeadSelectionHeader::ClusterHeadSelectionHeader()
@@ -129,7 +195,11 @@ void ClusterHeadSelectionHeader::SetResidualEnrg(double residualEnrg)
     m_residualEnrg = residualEnrg;
 }
 
+//------------------------------------------------------------------
 // cluster neighbor header
+
+NS_OBJECT_ENSURE_REGISTERED(ClusterNeighborHeader);
+
 ClusterNeighborHeader::ClusterNeighborHeader()
 {
 }
@@ -141,9 +211,9 @@ ClusterNeighborHeader::~ClusterNeighborHeader()
 TypeId
 ClusterNeighborHeader::GetTypeId()
 {
-    static TypeId tid = TypeId("ns3::ClusterHeadSelectionHeader")
+    static TypeId tid = TypeId("ns3::ClusterNeighborHeader")
                             .SetParent<Header>()
-                            .AddConstructor<ClusterHeadSelectionHeader>();
+                            .AddConstructor<ClusterNeighborHeader>();
     return tid;
 }
 
