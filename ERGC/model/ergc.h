@@ -26,7 +26,7 @@ namespace ns3
 	class PacketParams
 	{
 	public:
-		static const int PACKET_SIZE_BITS = 500;
+		static const int PACKET_SIZE_BITS = 504 >> 3; // all over the application packet size is in bytes are used
 		static const int DATA_TRANSMISSION_RATE_BITS_PER_SEC = 50000;
 	};
 
