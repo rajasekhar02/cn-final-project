@@ -21,9 +21,18 @@
 #ifndef AQUA_SIM_NET_DEVICE_H
 #define AQUA_SIM_NET_DEVICE_H
 
-namespace ns3 {
+namespace ns3
+{
   // early declare for aqua-sim-mac sake
-  enum TransStatus {SLEEP, NIDLE, SEND, RECV, NSTATUS, DISABLE };
+  enum TransStatus
+  {
+    SLEEP,
+    NIDLE,
+    SEND,
+    RECV,
+    NSTATUS,
+    DISABLE
+  };
 }
 
 #include "ns3/net-device.h"
@@ -32,12 +41,12 @@ namespace ns3 {
 #include "ns3/random-variable-stream.h"
 #include "ns3/callback.h"
 #include "ns3/packet.h"
-//#include "ns3/address.h"      //could be updated to support own unique address type for uwsn
+// #include "ns3/address.h"      //could be updated to support own unique address type for uwsn
 
 #include "aqua-sim-address.h"
 #include "aqua-sim-phy.h"
 #include "aqua-sim-energy-model.h"
-//#include "aqua-sim-channel.h"
+// #include "aqua-sim-channel.h"
 #include "aqua-sim-routing.h"
 #include "aqua-sim-mac.h"
 #include "aqua-sim-synchronization.h"
@@ -45,201 +54,201 @@ namespace ns3 {
 #include "aqua-sim-attack-model.h"
 #include "ns3/named-data.h"
 
-namespace ns3 {
-
-class Channel;
-class PromiscReceiveCallback;
-class MobilityModel;
-
-class AquaSimPhy;
-class AquaSimRouting;
-//class AquaSimMac;
-class AquaSimChannel;
-class AquaSimSync;
-class AquaSimLocalization;
-class AquaSimAttackModel;
-class NamedData;
-
-/**
- * \ingroup aqua-sim-ng
- *
- * \brief Underwater NetDevice structure. Ported from UWSN Lab's Aqua-Sim on NS-2.
- */
-class AquaSimNetDevice : public NetDevice
+namespace ns3
 {
-public:
-  AquaSimNetDevice ();
-  ~AquaSimNetDevice ();
-  static TypeId GetTypeId (void);
 
-  //attach
-  void ConnectLayers(void);
-  void SetPhy (Ptr<AquaSimPhy> phy);
-  void SetMac (Ptr<AquaSimMac> mac, Ptr<AquaSimSync> sync = NULL, Ptr<AquaSimLocalization> loc = NULL);
-  void SetRouting (Ptr<AquaSimRouting> routing);
-  void SetChannel (Ptr<AquaSimChannel> channel);
-  void SetChannel (std::vector<Ptr<AquaSimChannel> > channel); //for multi-channel support
-  //void SetApp (Ptr<AquaSimApp> app);
-  void SetEnergyModel (Ptr<AquaSimEnergyModel> energyModel);
-  void SetAttackModel(Ptr<AquaSimAttackModel> attackModel);
-  void SetNamedData(Ptr<NamedData> ndn);
+  class Channel;
+  class PromiscReceiveCallback;
+  class MobilityModel;
 
-  Ptr<AquaSimPhy> GetPhy (void);
-  Ptr<AquaSimMac> GetMac (void);
-  Ptr<AquaSimRouting> GetRouting (void);
-  //Ptr<AquaSimApp> GetApp (void);
-        //Not currently implemented
-  Ptr<AquaSimChannel> DoGetChannel (int channelId) const;
-  Ptr<AquaSimChannel> DoGetChannel(void) const;
-  Ptr<AquaSimSync> GetMacSync(void);
-  Ptr<AquaSimLocalization> GetMacLoc(void);
-  Ptr<AquaSimAttackModel> GetAttackModel(void);
-  Ptr<NamedData> GetNamedData(void);
+  class AquaSimPhy;
+  class AquaSimRouting;
+  // class AquaSimMac;
+  class AquaSimChannel;
+  class AquaSimSync;
+  class AquaSimLocalization;
+  class AquaSimAttackModel;
+  class NamedData;
 
-  virtual void DoDispose (void);
-  virtual void DoInitialize (void);
-
-  virtual double GetPropSpeed(void); //m/s
-
-  void ForwardUp (Ptr<Packet> packet, Ptr<MobilityModel> src, Ptr<MobilityModel> dst);	//not used.
-
-  //inherited functions from NetDevice class
-  virtual void AddLinkChangeCallback (Callback<void> callback);
-  virtual Address GetAddress (void) const;
-  virtual Address GetBroadcast (void) const;
-  virtual Ptr<Channel> GetChannel (void) const;
-  virtual uint32_t GetIfIndex (void) const;
-  virtual uint16_t GetMtu (void) const;
-  virtual Address GetMulticast (Ipv4Address multicastGroup) const;
-  virtual Address GetMulticast (Ipv6Address addr) const;
-  virtual Ptr<Node> GetNode (void) const;
-  virtual bool IsBridge (void) const;
-  virtual bool IsBroadcast (void) const;
-  virtual bool IsLinkUp (void) const;
-  virtual bool IsMulticast (void) const;
-  virtual bool IsPointToPoint (void) const;
-  virtual bool NeedsArp (void) const;
-  virtual bool SendWithHeader (Ptr<Packet> packet, uint16_t protocolNumber);
-  virtual bool Send (Ptr<Packet> packet, const Address &dest, uint16_t protocolNumber);
-  virtual bool SendFrom (Ptr<Packet> packet, const Address &source,
-                           const Address &dest, uint16_t protocolNumber);
-  virtual void SetAddress (Address address);
-  virtual void SetIfIndex (uint32_t index);
-  virtual bool SetMtu (const uint16_t mtu);
-  virtual void SetNode (Ptr<Node> node);
-  virtual void SetPromiscReceiveCallback (PromiscReceiveCallback cb);
-  virtual void SetReceiveCallback (ReceiveCallback cb);
-  virtual bool SupportsSendFrom (void) const;
-
-  /*
-   * Taken from AquaSimNode during consolidation
+  /**
+   * \ingroup aqua-sim-ng
+   *
+   * \brief Underwater NetDevice structure. Ported from UWSN Lab's Aqua-Sim on NS-2.
    */
-  //bool Move(void);	/*start the movement... should be handled within example*/
-  //void Start(void);
-  //void CheckPosition(void);
-  inline Time &PositionUpdateTime(void) { return m_positionUpdateTime; }
-  void SetPositionUpdateTime(Time posUpdateTime) { m_positionUpdateTime = posUpdateTime; }
+  class AquaSimNetDevice : public NetDevice
+  {
+  public:
+    AquaSimNetDevice();
+    ~AquaSimNetDevice();
+    static TypeId GetTypeId(void);
 
-  //sink related attributes
-  int ClearSinkStatus(void);
-  int SetSinkStatus(void);
-  inline int GetSinkStatus(void) { return m_sinkStatus; }
+    // attach
+    void ConnectLayers(void);
+    void SetPhy(Ptr<AquaSimPhy> phy);
+    void SetMac(Ptr<AquaSimMac> mac, Ptr<AquaSimSync> sync = NULL, Ptr<AquaSimLocalization> loc = NULL);
+    void SetRouting(Ptr<AquaSimRouting> routing);
+    void SetChannel(Ptr<AquaSimChannel> channel);
+    void SetChannel(std::vector<Ptr<AquaSimChannel>> channel); // for multi-channel support
+    // void SetApp (Ptr<AquaSimApp> app);
+    void SetEnergyModel(Ptr<AquaSimEnergyModel> energyModel);
+    void SetAttackModel(Ptr<AquaSimAttackModel> attackModel);
+    void SetNamedData(Ptr<NamedData> ndn);
 
-  //VBF
-  inline double &CX(void) { return m_cX; }
-  inline double &CY(void) { return m_cY; }
-  inline double &CZ(void) { return m_cZ; }
+    Ptr<AquaSimPhy> GetPhy(void);
+    Ptr<AquaSimMac> GetMac(void);
+    Ptr<AquaSimRouting> GetRouting(void);
+    // Ptr<AquaSimApp> GetApp (void);
+    // Not currently implemented
+    Ptr<AquaSimChannel> DoGetChannel(int channelId) const;
+    Ptr<AquaSimChannel> DoGetChannel(void) const;
+    Ptr<AquaSimSync> GetMacSync(void);
+    Ptr<AquaSimLocalization> GetMacLoc(void);
+    Ptr<AquaSimAttackModel> GetAttackModel(void);
+    Ptr<NamedData> GetNamedData(void);
 
-  inline bool FailureStatus(void) { return m_failureStatus; }
-  inline double FailurePro(void) { return m_failurePro; }
-  inline double FailureStatusPro(void) { return m_failureStatusPro; }
+    virtual void DoDispose(void);
+    virtual void DoInitialize(void);
 
-  virtual void SetTransmissionStatus(TransStatus status);
-  virtual TransStatus GetTransmissionStatus(void);
+    virtual double GetPropSpeed(void); // m/s
 
-  inline bool CarrierSense(void) { return m_carrierSense; }
-  inline void ResetCarrierSense(void) { m_carrierSense = false; }
-  inline void SetCarrierSense(bool f){
-    m_carrierSense = f;
-    m_carrierId = f;
-  }
-  inline bool CarrierId(void) { return m_carrierId; }
-  inline void ResetCarrierId(void) { m_carrierId = false; }
+    // void ForwardUp(Ptr<Packet> packet, Ptr<MobilityModel> src, Ptr<MobilityModel> dst); // not used.
+    void Receive(Ptr<Packet> packet, uint16_t protocol, AquaSimAddress to, AquaSimAddress from);
+    // inherited functions from NetDevice class
+    virtual void AddLinkChangeCallback(Callback<void> callback);
+    virtual Address GetAddress(void) const;
+    virtual Address GetBroadcast(void) const;
+    virtual Ptr<Channel> GetChannel(void) const;
+    virtual uint32_t GetIfIndex(void) const;
+    virtual uint16_t GetMtu(void) const;
+    virtual Address GetMulticast(Ipv4Address multicastGroup) const;
+    virtual Address GetMulticast(Ipv6Address addr) const;
+    virtual Ptr<Node> GetNode(void) const;
+    virtual bool IsBridge(void) const;
+    virtual bool IsBroadcast(void) const;
+    virtual bool IsLinkUp(void) const;
+    virtual bool IsMulticast(void) const;
+    virtual bool IsPointToPoint(void) const;
+    virtual bool NeedsArp(void) const;
+    virtual bool SendWithHeader(Ptr<Packet> packet, uint16_t protocolNumber);
+    virtual bool Send(Ptr<Packet> packet, const Address &dest, uint16_t protocolNumber);
+    virtual bool SendFrom(Ptr<Packet> packet, const Address &source,
+                          const Address &dest, uint16_t protocolNumber);
+    virtual void SetAddress(Address address);
+    virtual void SetIfIndex(uint32_t index);
+    virtual bool SetMtu(const uint16_t mtu);
+    virtual void SetNode(Ptr<Node> node);
+    virtual void SetPromiscReceiveCallback(PromiscReceiveCallback cb);
+    virtual void SetReceiveCallback(ReceiveCallback cb);
+    virtual bool SupportsSendFrom(void) const;
 
-  int m_nextHop;
-  int m_setHopStatus;
-  int m_sinkStatus;
+    /*
+     * Taken from AquaSimNode during consolidation
+     */
+    // bool Move(void);	/*start the movement... should be handled within example*/
+    // void Start(void);
+    // void CheckPosition(void);
+    inline Time &PositionUpdateTime(void) { return m_positionUpdateTime; }
+    void SetPositionUpdateTime(Time posUpdateTime) { m_positionUpdateTime = posUpdateTime; }
 
-  int GetHopStatus();
-  int GetNextHop();
+    // sink related attributes
+    int ClearSinkStatus(void);
+    int SetSinkStatus(void);
+    inline int GetSinkStatus(void) { return m_sinkStatus; }
 
-  //void UpdatePosition(void);  // UpdatePosition() out of date... should be using ns3's mobility module
-  bool IsMoving(void);
-  Vector GetPosition(void);
-  Ptr<AquaSimEnergyModel> EnergyModel(void) {return m_energyModel; }
-  bool IsAttacker(void);
+    // VBF
+    inline double &CX(void) { return m_cX; }
+    inline double &CY(void) { return m_cY; }
+    inline double &CZ(void) { return m_cZ; }
 
-  int TotalSentPkts() {return m_totalSentPkts;}
+    inline bool FailureStatus(void) { return m_failureStatus; }
+    inline double FailurePro(void) { return m_failurePro; }
+    inline double FailureStatusPro(void) { return m_failureStatusPro; }
 
-  inline bool MacEnabled() {return m_macEnabled;}
-  inline void MacEnabled(bool value) {m_macEnabled = value;}
+    virtual void SetTransmissionStatus(TransStatus status);
+    virtual TransStatus GetTransmissionStatus(void);
 
-protected:
+    inline bool CarrierSense(void) { return m_carrierSense; }
+    inline void ResetCarrierSense(void) { m_carrierSense = false; }
+    inline void SetCarrierSense(bool f)
+    {
+      m_carrierSense = f;
+      m_carrierId = f;
+    }
+    inline bool CarrierId(void) { return m_carrierId; }
+    inline void ResetCarrierId(void) { m_carrierId = false; }
 
-  void GenerateFailure(void);
+    int m_nextHop;
+    int m_setHopStatus;
+    int m_sinkStatus;
 
-private:
+    int GetHopStatus();
+    int GetNextHop();
 
-  void CompleteConfig (void);
+    // void UpdatePosition(void);  // UpdatePosition() out of date... should be using ns3's mobility module
+    bool IsMoving(void);
+    Vector GetPosition(void);
+    Ptr<AquaSimEnergyModel> EnergyModel(void) { return m_energyModel; }
+    bool IsAttacker(void);
 
-  Ptr<AquaSimPhy> m_phy;
-  Ptr<AquaSimMac> m_mac;
-  Ptr<AquaSimRouting> m_routing;
-  //Ptr<AquaSimApp> m_app;
-  std::vector<Ptr<AquaSimChannel> > m_channel;
-  Ptr<Node> m_node;
-  Ptr<UniformRandomVariable> m_uniformRand;
-  Ptr<AquaSimEnergyModel> m_energyModel;
-  Ptr<AquaSimSync> m_macSync;
-  Ptr<AquaSimLocalization> m_macLoc;
-  Ptr<AquaSimAttackModel> m_attackModel;
-  Ptr<NamedData> m_ndn;
+    int TotalSentPkts() { return m_totalSentPkts; }
 
-  NetDevice::ReceiveCallback m_forwardUp;
-  bool m_configComplete;
+    inline bool MacEnabled() { return m_macEnabled; }
+    inline void MacEnabled(bool value) { m_macEnabled = value; }
 
-  bool m_attacker;
+  protected:
+    void GenerateFailure(void);
 
-  /*
-   * From AquaSimNode
-   */
-  TransStatus m_transStatus;
-  double m_statusChangeTime;  //the time when changing m_preTransStatus to m_transStatus
+  private:
+    void CompleteConfig(void);
 
-  bool	m_failureStatus;// 1 if node fails, 0 otherwise
-  double m_failurePro;
-  double m_failureStatusPro;
+    Ptr<AquaSimPhy> m_phy;
+    Ptr<AquaSimMac> m_mac;
+    Ptr<AquaSimRouting> m_routing;
+    // Ptr<AquaSimApp> m_app;
+    std::vector<Ptr<AquaSimChannel>> m_channel;
+    Ptr<Node> m_node;
+    Ptr<UniformRandomVariable> m_uniformRand;
+    Ptr<AquaSimEnergyModel> m_energyModel;
+    Ptr<AquaSimSync> m_macSync;
+    Ptr<AquaSimLocalization> m_macLoc;
+    Ptr<AquaSimAttackModel> m_attackModel;
+    Ptr<NamedData> m_ndn;
+    NetDevice::ReceiveCallback m_forwardUp;
+    NetDevice::PromiscReceiveCallback m_promiscCallback; //!< Promiscuous receive callback
 
-  //the following attributes are added by Peng Xie for RMAC and VBF
-  double m_cX;
-  double m_cY;
-  double m_cZ;
+    bool m_configComplete;
 
-  bool m_carrierSense;
-  bool m_carrierId;
+    bool m_attacker;
 
-  Time m_positionUpdateTime;
+    /*
+     * From AquaSimNode
+     */
+    TransStatus m_transStatus;
+    double m_statusChangeTime; // the time when changing m_preTransStatus to m_transStatus
 
-  uint32_t m_ifIndex;
-  uint16_t m_mtu;
+    bool m_failureStatus; // 1 if node fails, 0 otherwise
+    double m_failurePro;
+    double m_failureStatusPro;
 
-  int m_totalSentPkts;
+    // the following attributes are added by Peng Xie for RMAC and VBF
+    double m_cX;
+    double m_cY;
+    double m_cZ;
 
-  bool m_macEnabled;
-  //XXX remove counters
-};  // class AquaSimNetDevice
+    bool m_carrierSense;
+    bool m_carrierId;
 
+    Time m_positionUpdateTime;
 
-}  // namespace ns3
+    uint32_t m_ifIndex;
+    uint16_t m_mtu;
+
+    int m_totalSentPkts;
+
+    bool m_macEnabled;
+    // XXX remove counters
+  }; // class AquaSimNetDevice
+
+} // namespace ns3
 
 #endif /* AQUA_SIM_NET_DEVICE_H */
