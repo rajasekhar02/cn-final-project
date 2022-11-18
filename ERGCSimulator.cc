@@ -36,10 +36,12 @@ void initNodes()
   {
     Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
     Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
-    ergcNodeProps->nodeType = "UWS";
-    ergcNodeProps->BSPosition = baseStationCon.Get(0)->GetObject<MobilityModel>()->GetPosition();
+    ergcNodeProps->m_nodeType = "UWS";
+    ergcNodeProps->m_BSPosition = baseStationCon.Get(0)->GetObject<MobilityModel>()->GetPosition();
+    Ptr<AquaSimNetDevice> aqnd = asHelper.Create(*i, newDevice);
+    ergcNodeProps->m_netDeviceInitialEnergy = newDevice->EnergyModel()->GetInitialEnergy();
     (*i)->AggregateObject(ergcNodeProps);
-    devices.Add(asHelper.Create(*i, newDevice));
+    devices.Add(aqnd);
   }
 
   std::cout << "Initializing Nodes Mobility Model" << std::endl;
@@ -56,8 +58,8 @@ void initBaseStation()
   Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
   position->Add(ns3::Vector(sceneparams.base_station_x,sceneparams.base_station_y, sceneparams.base_station_z));
   Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
-  ergcNodeProps->nodeType = "BS";
-  ergcNodeProps->k_mtrs = sceneparams.k_mtrs;
+  ergcNodeProps->m_nodeType = "BS";
+  ergcNodeProps->m_k_mtrs = sceneparams.k_mtrs;
   baseStationCon.Get(0)->AggregateObject(ergcNodeProps);
   devices.Add(asHelper.Create(baseStationCon.Get(0), newDevice));
   newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
