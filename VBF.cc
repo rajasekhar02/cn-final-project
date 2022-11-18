@@ -93,9 +93,9 @@ int main(int argc, char *argv[])
     Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
     devices.Add(asHelper.Create(*i, newDevice));
     Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
-    ergcNodeProps->nodeType = "UWS";
+    ergcNodeProps->m_nodeType = "UWS";
     newDevice->AggregateObject(ergcNodeProps);
-    std::cout << newDevice->GetObject<ERGCNodeProps>()->nodeType << std::endl;
+    std::cout << newDevice->GetObject<ERGCNodeProps>()->m_nodeType << std::endl;
     newDevice->GetPhy()->SetTransRange(range);
   }
 
