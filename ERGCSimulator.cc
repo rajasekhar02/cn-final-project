@@ -115,7 +115,7 @@ void initNodes()
     Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
     ergcNodeProps->nodeType = "UWS";
     (*i)->AggregateObject(ergcNodeProps);
-    devices.Add(asHelper.CreateWithoutRouting(*i, newDevice));
+    devices.Add(asHelper.Create(*i, newDevice));
   }
 
   std::cout << "Initializing Nodes Mobility Model" << std::endl;
@@ -135,7 +135,7 @@ void initBaseStation()
   ergcNodeProps->nodeType = "BS";
   ergcNodeProps->k_mtrs = sceneparams.k_mtrs;
   baseStationCon.Get(0)->AggregateObject(ergcNodeProps);
-  devices.Add(asHelper.CreateWithoutRouting(baseStationCon.Get(0), newDevice));
+  devices.Add(asHelper.Create(baseStationCon.Get(0), newDevice));
   newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
 }
 
@@ -157,9 +157,8 @@ int main(int argc, char *argv[])
   asHelper = AquaSimHelper::Default();
   asHelper.SetChannel(channel.Create());
   asHelper.SetMac("ns3::AquaSimBroadcastMac");
+  asHelper.SetRouting("ns3::ERGCRouting");
   asHelper.SetEnergyModel("ns3::AquaSimEnergyModel", "InitialEnergy", DoubleValue(2.0));
-  // asHelper.SetRouting("ms3::Object");
-  // asHelper.SetRouting("ns3::AquaSimVBF", "Width", DoubleValue(500), "TargetPos", Vector3DValue(Vector(0, 0, 0)));
   position = CreateObject<ListPositionAllocator>();
   initNodes();
   initBaseStation();

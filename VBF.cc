@@ -21,12 +21,12 @@
 #include "ns3/core-module.h"
 #include "ns3/network-module.h"
 #include "ns3/mobility-module.h"
-#include "ns3/energy-module.h"  //may not be needed here...
+#include "ns3/energy-module.h" //may not be needed here...
 #include "ns3/aqua-sim-ng-module.h"
 #include "ns3/applications-module.h"
+#include "ns3/ERGC-module.h"
 #include "ns3/log.h"
 #include "ns3/callback.h"
-
 
 /*
  * VBF Test
@@ -36,25 +36,24 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("VBF");
 
-int
-main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-  double simStop = 200; //seconds
+  double simStop = 200; // seconds
   int nodes = 200;
   int sinks = 1;
   uint32_t m_dataRate = 10000;
   uint32_t m_packetSize = 40;
   double range = 100;
-  //int m_maxBurst =10;
+  // int m_maxBurst =10;
 
-  LogComponentEnable ("VBF", LOG_LEVEL_INFO);
+  LogComponentEnable("VBF", LOG_LEVEL_INFO);
 
-  //to change on the fly
+  // to change on the fly
   CommandLine cmd;
-  cmd.AddValue ("simStop", "Length of simulation", simStop);
-  cmd.AddValue ("nodes", "Amount of regular underwater nodes", nodes);
-  cmd.AddValue ("sinks", "Amount of underwater sinks", sinks);
-  cmd.Parse(argc,argv);
+  cmd.AddValue("simStop", "Length of simulation", simStop);
+  cmd.AddValue("nodes", "Amount of regular underwater nodes", nodes);
+  cmd.AddValue("sinks", "Amount of underwater sinks", sinks);
+  cmd.Parse(argc, argv);
 
   std::cout << "-----------Initializing simulation-----------\n";
 
@@ -70,14 +69,14 @@ main (int argc, char *argv[])
   socketHelper.Install(sinksCon);
   socketHelper.Install(senderCon);
 
-  //establish layers using helper's pre-build settings
+  // establish layers using helper's pre-build settings
   AquaSimChannelHelper channel = AquaSimChannelHelper::Default();
   channel.SetPropagation("ns3::AquaSimRangePropagation");
   AquaSimHelper asHelper = AquaSimHelper::Default();
-  //AquaSimEnergyHelper energy;	//******this could instead be handled by node helper. ****/
+  // AquaSimEnergyHelper energy;	//******this could instead be handled by node helper. ****/
   asHelper.SetChannel(channel.Create());
   asHelper.SetMac("ns3::AquaSimBroadcastMac");
-  asHelper.SetRouting("ns3::ERGCRouting", "Width", DoubleValue(100), "TargetPos", Vector3DValue(Vector(190,190,0)));
+  asHelper.SetRouting("ns3::ERGCRouting", "Width", DoubleValue(100), "TargetPos", Vector3DValue(Vector(190, 190, 0)));
 
   /*
    * Preset up mobility model for nodes and sinks here
@@ -85,35 +84,39 @@ main (int argc, char *argv[])
   MobilityHelper mobility;
   MobilityHelper nodeMobility;
   NetDeviceContainer devices;
-  Ptr<ListPositionAllocator> position = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> position = CreateObject<ListPositionAllocator>();
 
   std::cout << "Creating Nodes\n";
 
   for (NodeContainer::Iterator i = nodesCon.Begin(); i != nodesCon.End(); i++)
-    {
-      Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-      devices.Add(asHelper.Create(*i, newDevice));
-      newDevice->GetPhy()->SetTransRange(range);
-    }
+  {
+    Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
+    devices.Add(asHelper.Create(*i, newDevice));
+    Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
+    ergcNodeProps->nodeType = "UWS";
+    newDevice->AggregateObject(ergcNodeProps);
+    std::cout << newDevice->GetObject<ERGCNodeProps>()->nodeType << std::endl;
+    newDevice->GetPhy()->SetTransRange(range);
+  }
 
   for (NodeContainer::Iterator i = sinksCon.Begin(); i != sinksCon.End(); i++)
-    {
-      Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-      position->Add(Vector(190,190,0));
-      devices.Add(asHelper.Create(*i, newDevice));
-      newDevice->GetPhy()->SetTransRange(range);
-    }
+  {
+    Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
+    position->Add(Vector(190, 190, 0));
+    devices.Add(asHelper.Create(*i, newDevice));
+    newDevice->GetPhy()->SetTransRange(range);
+  }
 
   Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-  position->Add(Vector(10,10,0));
-  devices.Add(asHelper.Create(senderCon.Get(0),newDevice));
+  position->Add(Vector(10, 10, 0));
+  devices.Add(asHelper.Create(senderCon.Get(0), newDevice));
   newDevice->GetPhy()->SetTransRange(range);
 
-  //Set sink at origin and surround with uniform distribution of regular nodes.
+  // Set sink at origin and surround with uniform distribution of regular nodes.
   mobility.SetPositionAllocator(position);
   mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
   nodeMobility.SetPositionAllocator("ns3::UniformDiscPositionAllocator", "X", DoubleValue(100.0),
-                                      "Y", DoubleValue(100.0), "rho", DoubleValue(100));
+                                    "Y", DoubleValue(100.0), "rho", DoubleValue(100));
   nodeMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
   nodeMobility.Install(nodesCon);
   mobility.Install(sinksCon);
@@ -122,32 +125,31 @@ main (int argc, char *argv[])
   PacketSocketAddress socket;
   socket.SetAllDevices();
   // socket.SetSingleDevice (devices.Get(0)->GetIfIndex());
-  socket.SetPhysicalAddress (devices.Get(nodes)->GetAddress());
-  socket.SetProtocol (0);
+  socket.SetPhysicalAddress(devices.Get(nodes)->GetAddress());
+  socket.SetProtocol(0);
 
-  //std::cout << devices.Get(nodes)->GetAddress() << " &&& " << devices.Get(0)->GetIfIndex() << "\n";
-  //std::cout << devices.Get(0)->GetAddress() << " &&& " << devices.Get(1)->GetIfIndex() << "\n";
+  // std::cout << devices.Get(nodes)->GetAddress() << " &&& " << devices.Get(0)->GetIfIndex() << "\n";
+  // std::cout << devices.Get(0)->GetAddress() << " &&& " << devices.Get(1)->GetIfIndex() << "\n";
 
-  OnOffHelper app ("ns3::PacketSocketFactory", Address (socket));
-  app.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.0066]"));
-  app.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.9934]"));
-//  app.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.026]"));
-//  app.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.974]"));
-  app.SetAttribute ("DataRate", DataRateValue (m_dataRate));
-  app.SetAttribute ("PacketSize", UintegerValue (m_packetSize));
+  OnOffHelper app("ns3::PacketSocketFactory", Address(socket));
+  app.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0066]"));
+  app.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.9934]"));
+  //  app.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.026]"));
+  //  app.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.974]"));
+  app.SetAttribute("DataRate", DataRateValue(m_dataRate));
+  app.SetAttribute("PacketSize", UintegerValue(m_packetSize));
 
-  ApplicationContainer apps = app.Install (senderCon);
-  apps.Start (Seconds (0.5));
-  apps.Stop (Seconds (simStop));
+  ApplicationContainer apps = app.Install(senderCon);
+  apps.Start(Seconds(0.5));
+  apps.Stop(Seconds(simStop));
 
   Ptr<Node> sinkNode = sinksCon.Get(0);
-  TypeId psfid = TypeId::LookupByName ("ns3::PacketSocketFactory");
+  TypeId psfid = TypeId::LookupByName("ns3::PacketSocketFactory");
 
-  Ptr<Socket> sinkSocket = Socket::CreateSocket (sinkNode, psfid);
-  sinkSocket->Bind (socket);
+  Ptr<Socket> sinkSocket = Socket::CreateSocket(sinkNode, psfid);
+  sinkSocket->Bind(socket);
 
-
-  Packet::EnablePrinting ();  //for debugging purposes
+  Packet::EnablePrinting(); // for debugging purposes
   std::cout << "-----------Running Simulation-----------\n";
   Simulator::Stop(Seconds(simStop));
   Simulator::Run();
