@@ -141,7 +141,6 @@ namespace ns3
         NS_LOG_FUNCTION(this);
         PacketSocketAddress pSocket;
         pSocket.SetAllDevices();
-        // socket.SetSingleDevice (devices.Get(0)->GetIfIndex());
         pSocket.SetPhysicalAddress((Address)AquaSimAddress::GetBroadcast());
         pSocket.SetProtocol(0);
         this->m_peer = pSocket;
@@ -150,36 +149,13 @@ namespace ns3
             m_socket = Socket::CreateSocket(GetNode(), m_tid);
             GetNode()->GetDevice(0)->AggregateObject(m_socket);
             int ret = -1;
-
-            if (!m_local.IsInvalid())
-            {
-                NS_ABORT_MSG_IF((Inet6SocketAddress::IsMatchingType(m_peer) && InetSocketAddress::IsMatchingType(m_local)) ||
-                                    (InetSocketAddress::IsMatchingType(m_peer) && Inet6SocketAddress::IsMatchingType(m_local)),
-                                "Incompatible peer and local address IP version");
-                ret = m_socket->Bind(m_local);
-            }
-            else
-            {
-                if (Inet6SocketAddress::IsMatchingType(m_peer))
-                {
-                    ret = m_socket->Bind6();
-                }
-                else if (InetSocketAddress::IsMatchingType(m_peer) ||
-                         PacketSocketAddress::IsMatchingType(m_peer))
-                {
-                    ret = m_socket->Bind();
-                }
-            }
-
+            ret = m_socket->Bind();
             if (ret == -1)
             {
                 NS_FATAL_ERROR("Failed to bind socket");
             }
-
             m_socket->Connect(m_peer);
             m_socket->SetAllowBroadcast(true);
-            // m_socket->ShutdownRecv();
-
             m_socket->SetConnectCallback(
                 MakeCallback(&ERGCApplication::ConnectionSucceeded, this),
                 MakeCallback(&ERGCApplication::ConnectionFailed, this));
@@ -199,67 +175,28 @@ namespace ns3
     void
     ERGCApplication::handleBSStartEvent()
     {
-        m_startStopEvent = Simulator::Schedule(Simulator::Now(), &ERGCApplication::SendPacketWithK, this);
+        m_BSSentKEvent = Simulator::Schedule(Simulator::Now(), &ERGCApplication::SendPacketWithK, this);
     }
     void
     ERGCApplication::handleNodeStartEvent()
     {
-
-        // std::cout << GetNode()->GetObject<ERGCNodeProps>()->k_mtrs << std::endl;
     }
 
-    void ERGCApplication::SendPacketWithK()
+    void 
+    ERGCApplication::SendPacketWithK()
     {
         NS_LOG_FUNCTION(this);
         NS_ASSERT(m_sendEvent.IsExpired());
         u_int32_t k_mtrs = GetNode()->GetObject<ERGCNodeProps>()->k_mtrs;
-        std::cout << k_mtrs << std::endl;
         CubeLengthHeader cubeLengthHeader;
-
         cubeLengthHeader.SetKMtrs(k_mtrs);
         Ptr<Packet> packet = Create<Packet>(cubeLengthHeader.GetSerializedSize());
-        // int actual =
         packet->AddHeader(cubeLengthHeader);
         m_socket->Send(packet);
-        // if ((unsigned)actual == m_pktSize)
-        // {
-        //     m_txTrace(packet);
-        //     m_totBytes += m_pktSize;
-        //     m_unsentPacket = 0;
-        //     Address localAddress;
-        //     m_socket->GetSockName(localAddress);
-        //     if (InetSocketAddress::IsMatchingType(m_peer))
-        //     {
-        //         NS_LOG_INFO("At time " << Simulator::Now().As(Time::S)
-        //                                << " on-off application sent "
-        //                                << packet->GetSize() << " bytes to "
-        //                                << InetSocketAddress::ConvertFrom(m_peer).GetIpv4()
-        //                                << " port " << InetSocketAddress::ConvertFrom(m_peer).GetPort()
-        //                                << " total Tx " << m_totBytes << " bytes");
-        //         m_txTraceWithAddresses(packet, localAddress, InetSocketAddress::ConvertFrom(m_peer));
-        //     }
-        //     else if (Inet6SocketAddress::IsMatchingType(m_peer))
-        //     {
-        //         NS_LOG_INFO("At time " << Simulator::Now().As(Time::S)
-        //                                << " on-off application sent "
-        //                                << packet->GetSize() << " bytes to "
-        //                                << Inet6SocketAddress::ConvertFrom(m_peer).GetIpv6()
-        //                                << " port " << Inet6SocketAddress::ConvertFrom(m_peer).GetPort()
-        //                                << " total Tx " << m_totBytes << " bytes");
-        //         m_txTraceWithAddresses(packet, localAddress, Inet6SocketAddress::ConvertFrom(m_peer));
-        //     }
-        // }
-        // else
-        // {
-        //     NS_LOG_DEBUG("Unable to send packet; actual " << actual << " size " << m_pktSize << "; caching for later attempt");
-        //     m_unsentPacket = packet;
-        // }
-        // m_residualBits = 0;
         m_lastStartTime = Simulator::Now();
-        // ScheduleNextTx();
     }
 
-    void
+    void 
     ERGCApplication::HandleRead(Ptr<Socket> socket)
     {
         NS_LOG_FUNCTION(this << socket);
@@ -271,19 +208,20 @@ namespace ns3
             socket->GetSockName(localAddress);
             if (packet->GetSize() > 0)
             {
-
-                // uint32_t receivedSize = packet->GetSize();
                 CubeLengthHeader cubeLengthTs;
                 if (packet->PeekHeader(cubeLengthTs))
                 {
                     packet->RemoveHeader(cubeLengthTs);
                     std::cout << cubeLengthTs.GetKMtrs() << std::endl;
+                    Ptr<ERGCNodeProps> ergcNodeProps= GetNode()->GetObject<ERGCNodeProps>();
+                    GetNode()->GetObject<ERGCNodeProps>()->k_mtrs = cubeLengthTs.GetKMtrs();
+
                 }
             }
         }
     }
 
-    void
+    void 
     ERGCApplication::StopApplication() // Called at time specified by Stop
     {
         NS_LOG_FUNCTION(this);
@@ -299,7 +237,8 @@ namespace ns3
         }
     }
 
-    void ERGCApplication::CancelEvents()
+    void 
+    ERGCApplication::CancelEvents()
     {
         NS_LOG_FUNCTION(this);
 
@@ -312,7 +251,7 @@ namespace ns3
         }
         m_cbrRateFailSafe = m_cbrRate;
         Simulator::Cancel(m_sendEvent);
-        Simulator::Cancel(m_startStopEvent);
+        Simulator::Cancel(m_BSSentKEvent);
         // Canceling events may cause discontinuity in sequence number if the
         // SeqTsSizeHeader is header, and m_unsentPacket is true
         if (m_unsentPacket)
@@ -323,138 +262,17 @@ namespace ns3
     }
 
     // Event handlers
-    void ERGCApplication::StartSending()
-    {
-        NS_LOG_FUNCTION(this);
-        m_lastStartTime = Simulator::Now();
-        ScheduleNextTx(); // Schedule the send packet event
-        ScheduleStopEvent();
-    }
-
-    void ERGCApplication::StopSending()
-    {
-        NS_LOG_FUNCTION(this);
-        CancelEvents();
-
-        ScheduleStartEvent();
-    }
-
+   
     // Private helpers
-    void ERGCApplication::ScheduleNextTx()
-    {
-        NS_LOG_FUNCTION(this);
-
-        if (m_maxBytes == 0 || m_totBytes < m_maxBytes)
-        {
-            NS_ABORT_MSG_IF(m_residualBits > m_pktSize * 8, "Calculation to compute next send time will overflow");
-            uint32_t bits = m_pktSize * 8 - m_residualBits;
-            NS_LOG_LOGIC("bits = " << bits);
-            Time nextTime(Seconds(bits /
-                                  static_cast<double>(m_cbrRate.GetBitRate()))); // Time till next packet
-            NS_LOG_LOGIC("nextTime = " << nextTime.As(Time::S));
-            m_sendEvent = Simulator::Schedule(nextTime,
-                                              &ERGCApplication::SendPacket, this);
-        }
-        else
-        { // All done, cancel any pending events
-            StopApplication();
-        }
-    }
-
-    void ERGCApplication::ScheduleStartEvent()
-    { // Schedules the event to start sending data (switch to the "On" state)
-        NS_LOG_FUNCTION(this);
-
-        Time offInterval = Seconds(m_offTime->GetValue());
-        NS_LOG_LOGIC("start at " << offInterval.As(Time::S));
-        m_startStopEvent = Simulator::Schedule(offInterval, &ERGCApplication::StartSending, this);
-    }
-
-    void ERGCApplication::ScheduleStopEvent()
-    { // Schedules the event to stop sending data (switch to "Off" state)
-        NS_LOG_FUNCTION(this);
-
-        Time onInterval = Seconds(m_onTime->GetValue());
-        NS_LOG_LOGIC("stop at " << onInterval.As(Time::S));
-        m_startStopEvent = Simulator::Schedule(onInterval, &ERGCApplication::StopSending, this);
-    }
-
-    void ERGCApplication::SendPacket()
-    {
-        NS_LOG_FUNCTION(this);
-
-        NS_ASSERT(m_sendEvent.IsExpired());
-
-        Ptr<Packet> packet;
-        if (m_unsentPacket)
-        {
-            packet = m_unsentPacket;
-        }
-        else if (m_enableSeqTsSizeHeader)
-        {
-            Address from, to;
-            m_socket->GetSockName(from);
-            m_socket->GetPeerName(to);
-            SeqTsSizeHeader header;
-            header.SetSeq(m_seq++);
-            header.SetSize(m_pktSize);
-            NS_ABORT_IF(m_pktSize < header.GetSerializedSize());
-            packet = Create<Packet>(m_pktSize - header.GetSerializedSize());
-            // Trace before adding header, for consistency with PacketSink
-            m_txTraceWithSeqTsSize(packet, from, to, header);
-            packet->AddHeader(header);
-        }
-        else
-        {
-            packet = Create<Packet>(m_pktSize);
-        }
-
-        int actual = m_socket->Send(packet);
-        if ((unsigned)actual == m_pktSize)
-        {
-            m_txTrace(packet);
-            m_totBytes += m_pktSize;
-            m_unsentPacket = 0;
-            Address localAddress;
-            m_socket->GetSockName(localAddress);
-            if (InetSocketAddress::IsMatchingType(m_peer))
-            {
-                NS_LOG_INFO("At time " << Simulator::Now().As(Time::S)
-                                       << " on-off application sent "
-                                       << packet->GetSize() << " bytes to "
-                                       << InetSocketAddress::ConvertFrom(m_peer).GetIpv4()
-                                       << " port " << InetSocketAddress::ConvertFrom(m_peer).GetPort()
-                                       << " total Tx " << m_totBytes << " bytes");
-                m_txTraceWithAddresses(packet, localAddress, InetSocketAddress::ConvertFrom(m_peer));
-            }
-            else if (Inet6SocketAddress::IsMatchingType(m_peer))
-            {
-                NS_LOG_INFO("At time " << Simulator::Now().As(Time::S)
-                                       << " on-off application sent "
-                                       << packet->GetSize() << " bytes to "
-                                       << Inet6SocketAddress::ConvertFrom(m_peer).GetIpv6()
-                                       << " port " << Inet6SocketAddress::ConvertFrom(m_peer).GetPort()
-                                       << " total Tx " << m_totBytes << " bytes");
-                m_txTraceWithAddresses(packet, localAddress, Inet6SocketAddress::ConvertFrom(m_peer));
-            }
-        }
-        else
-        {
-            NS_LOG_DEBUG("Unable to send packet; actual " << actual << " size " << m_pktSize << "; caching for later attempt");
-            m_unsentPacket = packet;
-        }
-        m_residualBits = 0;
-        m_lastStartTime = Simulator::Now();
-        ScheduleNextTx();
-    }
-
-    void ERGCApplication::ConnectionSucceeded(Ptr<Socket> socket)
+    void 
+    ERGCApplication::ConnectionSucceeded(Ptr<Socket> socket)
     {
         NS_LOG_FUNCTION(this << socket);
         m_connected = true;
     }
 
-    void ERGCApplication::ConnectionFailed(Ptr<Socket> socket)
+    void 
+    ERGCApplication::ConnectionFailed(Ptr<Socket> socket)
     {
         NS_LOG_FUNCTION(this << socket);
         NS_FATAL_ERROR("Can't connect");

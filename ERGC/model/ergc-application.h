@@ -146,7 +146,7 @@ namespace ns3
         Time m_lastStartTime;                //!< Time last packet sent
         uint64_t m_maxBytes;                 //!< Limit total number of bytes sent
         uint64_t m_totBytes;                 //!< Total bytes sent so far
-        EventId m_startStopEvent;            //!< Event id for next start or stop event
+        EventId m_BSSentKEvent;            //!< Event id for next start or stop event
         EventId m_sendEvent;                 //!< Event id of pending "send packet" event
         TypeId m_tid;                        //!< Type of the socket used
         uint32_t m_seq{0};                   //!< Sequence
@@ -163,18 +163,6 @@ namespace ns3
         TracedCallback<Ptr<const Packet>, const Address &, const Address &, const SeqTsSizeHeader &> m_txTraceWithSeqTsSize;
 
     private:
-        /**
-         * \brief Schedule the next packet transmission
-         */
-        void ScheduleNextTx();
-        /**
-         * \brief Schedule the next On period start
-         */
-        void ScheduleStartEvent();
-        /**
-         * \brief Schedule the next Off period start
-         */
-        void ScheduleStopEvent();
         /**
          * \brief Handle a Connection Succeed event
          * \param socket the connected socket
