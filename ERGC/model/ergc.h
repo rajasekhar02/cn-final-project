@@ -79,7 +79,7 @@ namespace ns3
 	public:
 		std::string nodeType;
 		ns3::Vector scIndex;
-		int k_mtrs;
+		uint32_t k_mtrs;
 		ERGCNodeProps();
 
 		static TypeId GetTypeId(void);

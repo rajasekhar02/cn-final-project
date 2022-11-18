@@ -148,6 +148,7 @@ namespace ns3
         if (!m_socket)
         {
             m_socket = Socket::CreateSocket(GetNode(), m_tid);
+            GetNode()->GetDevice(0)->AggregateObject(m_socket);
             int ret = -1;
 
             if (!m_local.IsInvalid())
@@ -184,7 +185,6 @@ namespace ns3
                 MakeCallback(&ERGCApplication::ConnectionFailed, this));
         }
         m_socket->SetRecvCallback(MakeCallback(&ERGCApplication::HandleRead, this));
-        std::cout << "Application Started" << std::endl;
         std::string nodeType = GetNode()->GetObject<ERGCNodeProps>()->nodeType;
         if (nodeType == "BS")
         {
@@ -204,7 +204,7 @@ namespace ns3
     void
     ERGCApplication::handleNodeStartEvent()
     {
-        std::cout << "Node started" << std::endl;
+
         // std::cout << GetNode()->GetObject<ERGCNodeProps>()->k_mtrs << std::endl;
     }
 
@@ -212,8 +212,10 @@ namespace ns3
     {
         NS_LOG_FUNCTION(this);
         NS_ASSERT(m_sendEvent.IsExpired());
-        int k_mtrs = GetNode()->GetObject<ERGCNodeProps>()->k_mtrs;
+        u_int32_t k_mtrs = GetNode()->GetObject<ERGCNodeProps>()->k_mtrs;
+        std::cout << k_mtrs << std::endl;
         CubeLengthHeader cubeLengthHeader;
+
         cubeLengthHeader.SetKMtrs(k_mtrs);
         Ptr<Packet> packet = Create<Packet>(cubeLengthHeader.GetSerializedSize());
         // int actual =
@@ -269,12 +271,13 @@ namespace ns3
             socket->GetSockName(localAddress);
             if (packet->GetSize() > 0)
             {
+
                 // uint32_t receivedSize = packet->GetSize();
                 CubeLengthHeader cubeLengthTs;
                 if (packet->PeekHeader(cubeLengthTs))
                 {
                     packet->RemoveHeader(cubeLengthTs);
-                    std::cout << cubeLengthTs << std::endl;
+                    std::cout << cubeLengthTs.GetKMtrs() << std::endl;
                 }
             }
         }
