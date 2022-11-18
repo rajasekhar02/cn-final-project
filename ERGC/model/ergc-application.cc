@@ -213,9 +213,18 @@ namespace ns3
             if (packet->PeekHeader(cubeLengthTs))
             {
                 HandleCudeLengthAssignPacket(packet);
+                StartClusteringPhase();
                 return;
             }
         }
+    }
+
+    void
+    ERGCApplication::StartClusteringPhase(){
+        ns3::Vector nodePosition = GetNode()->GetObject<MobilityModel>()->GetPosition();
+        Ptr<ERGCNodeProps> ergcNodeProps= GetNode()->GetObject<ERGCNodeProps>();
+        u_int32_t k_mtrs = ergcNodeProps->k_mtrs;
+        ergcNodeProps->scIndex = ERGCNodeProps::SCIndex(nodePosition, k_mtrs);
     }
 
     void 
@@ -224,9 +233,9 @@ namespace ns3
         packet->RemoveHeader(cubeLengthTs);
         Ptr<ERGCNodeProps> ergcNodeProps= GetNode()->GetObject<ERGCNodeProps>();
         ergcNodeProps->k_mtrs = cubeLengthTs.GetKMtrs();
-        NS_LOG_INFO("Node "<<GetNode()->GetId()<<" Received k: " <<ergcNodeProps->k_mtrs << '\n');
+        NS_LOG_INFO("Node "<<GetNode()->GetId()<<" Received k: " <<ergcNodeProps->k_mtrs);
     }
-    
+
     void 
     ERGCApplication::StopApplication() // Called at time specified by Stop
     {

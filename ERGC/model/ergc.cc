@@ -83,9 +83,4 @@ namespace ns3
     int h = zValue - (zValue % edgeLengthK);
     return Vector(m, n, h);
   }
-
-  ns3::Vector ERGCNodeProps::getBaseStationPosition(SceneParams sp)
-  {
-    return Vector(sp.base_station_x, sp.base_station_y, sp.base_station_z);
-  }
 }

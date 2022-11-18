@@ -77,14 +77,16 @@ namespace ns3
 	class ERGCNodeProps : public ns3::Object
 	{
 	public:
+		uint32_t k_mtrs;
 		std::string nodeType;
 		ns3::Vector scIndex;
-		uint32_t k_mtrs;
+		ns3::Vector BSPosition;
+
 		ERGCNodeProps();
 
 		static TypeId GetTypeId(void);
-		static ns3::Vector getBaseStationPosition(SceneParams sp);
 		static double distanceBTW(ns3::Vector node1Position, ns3::Vector node2Position);
+		static double distanceBTWSCToBS(ns3::Vector scIndex, ns3::Vector);
 		static ns3::Vector SCIndex(ns3::Vector nodePosition, int edgeLengthK);
 		static ns3::Vector SCIndex2(ns3::Vector nodePosition, int edgeLengthK);
 	};
