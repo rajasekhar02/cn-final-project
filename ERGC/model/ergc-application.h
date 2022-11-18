@@ -114,6 +114,7 @@ namespace ns3
 
         void SendPacketWithK();
         void HandleRead(Ptr<Socket> socket);
+        void HandleCudeLengthAssignPacket(Ptr<Packet> &packet);
         /**
          * \brief Cancel all pending events.
          */

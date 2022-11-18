@@ -194,6 +194,7 @@ namespace ns3
         packet->AddHeader(cubeLengthHeader);
         m_socket->Send(packet);
         m_lastStartTime = Simulator::Now();
+        NS_LOG_INFO("BS Broadcasted k: " << k_mtrs << '\n');
     }
 
     void 
@@ -201,26 +202,31 @@ namespace ns3
     {
         NS_LOG_FUNCTION(this << socket);
         Ptr<Packet> packet;
-        Address from;
         Address localAddress;
         while ((packet = socket->Recv()))
         {
             socket->GetSockName(localAddress);
-            if (packet->GetSize() > 0)
+        
+            if(packet->GetSize() <= 0) return;
+        
+            CubeLengthHeader cubeLengthTs;
+            if (packet->PeekHeader(cubeLengthTs))
             {
-                CubeLengthHeader cubeLengthTs;
-                if (packet->PeekHeader(cubeLengthTs))
-                {
-                    packet->RemoveHeader(cubeLengthTs);
-                    std::cout << cubeLengthTs.GetKMtrs() << std::endl;
-                    Ptr<ERGCNodeProps> ergcNodeProps= GetNode()->GetObject<ERGCNodeProps>();
-                    GetNode()->GetObject<ERGCNodeProps>()->k_mtrs = cubeLengthTs.GetKMtrs();
-
-                }
+                HandleCudeLengthAssignPacket(packet);
+                return;
             }
         }
     }
 
+    void 
+    ERGCApplication::HandleCudeLengthAssignPacket(Ptr<Packet> &packet){
+        CubeLengthHeader cubeLengthTs;
+        packet->RemoveHeader(cubeLengthTs);
+        Ptr<ERGCNodeProps> ergcNodeProps= GetNode()->GetObject<ERGCNodeProps>();
+        ergcNodeProps->k_mtrs = cubeLengthTs.GetKMtrs();
+        NS_LOG_INFO("Node "<<GetNode()->GetId()<<" Received k: " <<ergcNodeProps->k_mtrs << '\n');
+    }
+    
     void 
     ERGCApplication::StopApplication() // Called at time specified by Stop
     {
