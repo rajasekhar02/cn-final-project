@@ -26,83 +26,6 @@ AquaSimChannelHelper channel;
 AquaSimHelper asHelper;
 PacketSocketAddress socket;
 
-void printNodesPosSortByDistBtwNodeAndBS()
-{
-  uint32_t nNodes = nodesCon.GetN();
-  std::vector<ns3::Vector> nodePositions;
-
-  for (uint32_t i = 0; i < nNodes; i++)
-  {
-    ns3::Vector nodePosition = nodesCon.Get(i)->GetObject<MobilityModel>()->GetPosition();
-    nodePositions.push_back(nodePosition);
-  }
-
-  auto comparator = [](const ns3::Vector &a, const ns3::Vector &b)
-  {
-    double nodeADisFromBase = ERGCNodeProps::distanceBTW(a, ERGCNodeProps::getBaseStationPosition(sceneparams));
-    double nodeBDisFromBase = ERGCNodeProps::distanceBTW(b, ERGCNodeProps::getBaseStationPosition(sceneparams));
-    return nodeADisFromBase == nodeBDisFromBase ? 0 : (nodeADisFromBase < nodeBDisFromBase);
-  };
-
-  std::sort(nodePositions.begin(), nodePositions.end(), comparator);
-
-  for (int i = 0; i < (int)nodePositions.size(); i++)
-  {
-    std::cout << nodePositions[i].x << "," << nodePositions[i].y << "," << nodePositions[i].z << std::endl;
-  }
-}
-
-void printNodesSCIndices()
-{
-  uint32_t nNodes = nodesCon.GetN();
-  std::vector<std::pair<ns3::Vector, ns3::Vector>> SCs;
-
-  for (uint32_t i = 0; i < nNodes; i++)
-  {
-    ns3::Vector nodePosition = nodesCon.Get(i)->GetObject<MobilityModel>()->GetPosition();
-    SCs.push_back(std::make_pair(ERGCNodeProps::SCIndex(nodePosition, sceneparams.k_mtrs), nodePosition));
-  }
-
-  auto comparator = [](const std::pair<ns3::Vector, ns3::Vector> &a, const std::pair<ns3::Vector, ns3::Vector> &b)
-  {
-    double nodeADisFromBase = ERGCNodeProps::distanceBTW(a.second, ERGCNodeProps::getBaseStationPosition(sceneparams));
-    double nodeBDisFromBase = ERGCNodeProps::distanceBTW(b.second, ERGCNodeProps::getBaseStationPosition(sceneparams));
-    return nodeADisFromBase == nodeBDisFromBase ? 0 : (nodeADisFromBase < nodeBDisFromBase);
-  };
-
-  std::sort(SCs.begin(), SCs.end(), comparator);
-
-  std::cout << SCs.size() << std::endl;
-
-  for (int i = 0; i < (int)SCs.size(); i++)
-  {
-    std::cout << SCs[i].first << " " << SCs[i].second << " " << ERGCNodeProps::distanceBTW(SCs[i].second, ERGCNodeProps::getBaseStationPosition(sceneparams)) << std::endl;
-  }
-}
-
-void printClusterHeadSelectionHeader()
-{
-  // uint32_t nNodes = nodesCon.GetN();
-  ClusterHeadSelectionHeader clhsHeader, deserializedHeader;
-  Buffer m_buffer;
-  for (uint32_t i = 0; i < 1; i++)
-  {
-    Vector nodePosition = nodesCon.Get(i)->GetObject<MobilityModel>()->GetPosition();
-    Ptr<AquaSimNetDevice> aquaNetDevice = devices.Get(0)->GetObject<AquaSimNetDevice>();
-    clhsHeader.SetNodeId(AquaSimAddress::ConvertFrom(aquaNetDevice->GetAddress()));
-    clhsHeader.SetNodePosition(nodePosition);
-    clhsHeader.SetSCIndex(ERGCNodeProps::SCIndex(nodePosition, sceneparams.k_mtrs));
-    clhsHeader.SetDistBtwNodeAndBS(ERGCNodeProps::distanceBTW(nodePosition, ERGCNodeProps::getBaseStationPosition(sceneparams)));
-    Ptr<AquaSimEnergyModel> em = aquaNetDevice->EnergyModel();
-    clhsHeader.SetResidualEnrg(em->GetEnergy());
-    std::cout << clhsHeader << std::endl;
-    m_buffer.AddAtStart(clhsHeader.GetSerializedSize());
-    clhsHeader.Serialize(m_buffer.Begin());
-    deserializedHeader.Deserialize(m_buffer.Begin());
-    std::cout << deserializedHeader << std::endl;
-  }
-}
-
 void initNodes()
 {
   nodesCon.Create(sceneparams.no_of_nodes);
@@ -114,6 +37,7 @@ void initNodes()
     Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
     Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
     ergcNodeProps->nodeType = "UWS";
+    ergcNodeProps->BSPosition = baseStationCon.Get(0)->GetObject<MobilityModel>()->GetPosition();
     (*i)->AggregateObject(ergcNodeProps);
     devices.Add(asHelper.Create(*i, newDevice));
   }
@@ -130,7 +54,7 @@ void initBaseStation()
   baseStationCon.Create(1);
   socketHelper.Install(baseStationCon);
   Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-  position->Add(ERGCNodeProps::getBaseStationPosition(sceneparams));
+  position->Add(ns3::Vector(sceneparams.base_station_x,sceneparams.base_station_y, sceneparams.base_station_z));
   Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
   ergcNodeProps->nodeType = "BS";
   ergcNodeProps->k_mtrs = sceneparams.k_mtrs;
@@ -160,17 +84,11 @@ int main(int argc, char *argv[])
   asHelper.SetRouting("ns3::ERGCRouting");
   asHelper.SetEnergyModel("ns3::AquaSimEnergyModel", "InitialEnergy", DoubleValue(2.0));
   position = CreateObject<ListPositionAllocator>();
-  initNodes();
   initBaseStation();
   initBaseMobility();
-  printClusterHeadSelectionHeader();
-  // socket.SetAllDevices();
-  // socket.SetPhysicalAddress(devices[sceneparams.no_of_nodes]->GetAddress());
-  // socket.SetProtocol(0);
+  initNodes();
 
   ERGCAppHelper app("ns3::PacketSocketFactory");
-  // app.SetAttribute("OnTime", StringValue("ns3::ConstantRandomVariable[Constant=0.0066]"));
-  // app.SetAttribute("OffTime", StringValue("ns3::ConstantRandomVariable[Constant=0.9934]"));
   app.SetAttribute("DataRate", DataRateValue(PacketParams::DATA_TRANSMISSION_RATE_BITS_PER_SEC));
   app.SetAttribute("PacketSize", UintegerValue(PacketParams::PACKET_SIZE_BITS));
 
@@ -182,14 +100,8 @@ int main(int argc, char *argv[])
   baseApps.Start(Seconds(1));
   baseApps.Stop(Seconds(sceneparams.simulation_rounds));
 
-  // Packet::EnablePrinting();
-
-  // Ptr<AquaSimEnergyModel> em = devices.Get(0)->GetObject<AquaSimNetDevice>()->EnergyModel();
-  // std::cout << "Energy: " << em->GetEnergy() << std::endl;
   Simulator::Stop(Seconds(sceneparams.simulation_rounds));
   Simulator::Run();
-  // asHelper.GetChannel()->PrintCounters();
-  // std::cout << "Energy: " << em->GetEnergy() << std::endl;
   Simulator::Destroy();
   std::cout << "finish\n";
   return 0;
