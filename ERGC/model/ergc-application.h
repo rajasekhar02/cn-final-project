@@ -116,6 +116,7 @@ namespace ns3
         void HandleRead(Ptr<Socket> socket);
         void HandleCudeLengthAssignPacket(Ptr<Packet> &packet);
         void StartClusteringPhase();
+        void ScheduleClusterHeadSelectionPhase();
         /**
          * \brief Cancel all pending events.
          */
@@ -148,13 +149,13 @@ namespace ns3
         Time m_lastStartTime;                //!< Time last packet sent
         uint64_t m_maxBytes;                 //!< Limit total number of bytes sent
         uint64_t m_totBytes;                 //!< Total bytes sent so far
-        EventId m_BSSentKEvent;            //!< Event id for next start or stop event
+        EventId m_BSSentKEvent;              //!< Event id for next start or stop event
         EventId m_sendEvent;                 //!< Event id of pending "send packet" event
         TypeId m_tid;                        //!< Type of the socket used
         uint32_t m_seq{0};                   //!< Sequence
         Ptr<Packet> m_unsentPacket;          //!< Unsent packet cached for future attempt
         bool m_enableSeqTsSizeHeader{false}; //!< Enable or disable the use of SeqTsSizeHeader
-
+        Time m_maxClusterHeadSelectionTime{Time(10)};
         /// Traced Callback: transmitted packets.
         TracedCallback<Ptr<const Packet>> m_txTrace;
 

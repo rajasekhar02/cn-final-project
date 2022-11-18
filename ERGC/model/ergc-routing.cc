@@ -144,22 +144,9 @@ namespace ns3
 		}
 		else if (ash.GetDirection() == AquaSimHeader::DOWN)
 		{
-			// std::cout << (ash.GetDirection() == AquaSimHeader::DOWN) << GetNetDevice()->GetNode()->GetObject<ERGCNodeProps>()->nodeType << std::endl;
-			// std::cout << (ash.GetDirection() == AquaSimHeader::UP) << GetNetDevice()->GetNode()->GetObject<ERGCNodeProps>()->nodeType << std::endl;
-			// // fail to find the route, drop it
-			// NS_LOG_INFO("Dropping packet " << p << " due to no route");
-			// drop(p, DROP_RTR_NO_ROUTE);
-			// p = 0;
 			SendDown(p, next_hop, Seconds(0.0));
 			return true;
 		}
-		// else if ()
-		// {
-		// 	CubeLengthHeader clh;
-		// 	std::cout << (p->PeekHeader(clh)) << std::endl;
-		// 	GetNetDevice()->
-		// 	return false;
-		// }
 		return false;
 	}
 

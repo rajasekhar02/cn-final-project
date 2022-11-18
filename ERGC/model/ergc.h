@@ -77,18 +77,21 @@ namespace ns3
 	class ERGCNodeProps : public ns3::Object
 	{
 	public:
-		uint32_t k_mtrs;
-		std::string nodeType;
-		ns3::Vector scIndex;
-		ns3::Vector BSPosition;
+		uint32_t m_k_mtrs;
+		std::string m_nodeType;
+		ns3::Vector m_scIndex;
+		ns3::Vector m_BSPosition;
+		double m_netDeviceInitialEnergy;
 
 		ERGCNodeProps();
 
+		ns3::Time GetWaitTimeToBroadCastClusterHeadMsg(double NodeResidualEnergy, Vector currentNodePosition,Time Tmax);
 		static TypeId GetTypeId(void);
 		static double distanceBTW(ns3::Vector node1Position, ns3::Vector node2Position);
-		static double distanceBTWSCToBS(ns3::Vector scIndex, ns3::Vector);
+		static double distanceBTWSCToBS(ns3::Vector scIndex, ns3::Vector BSPosition, u_int32_t k_mtrs);
 		static ns3::Vector SCIndex(ns3::Vector nodePosition, int edgeLengthK);
 		static ns3::Vector SCIndex2(ns3::Vector nodePosition, int edgeLengthK);
+		
 	};
 }
 
