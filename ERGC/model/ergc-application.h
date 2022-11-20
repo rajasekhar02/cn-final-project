@@ -9,67 +9,13 @@
 #include "ns3/data-rate.h"
 #include "ns3/traced-callback.h"
 #include "ns3/seq-ts-size-header.h"
-
+#include "ergc-headers.h"
 namespace ns3
 {
 
     class Address;
     class RandomVariableStream;
     class Socket;
-
-    /**
-     * \ingroup applications
-     * \defgroup onoff ERGCApplication
-     *
-     * This traffic generator follows an On/Off pattern: after
-     * Application::StartApplication
-     * is called, "On" and "Off" states alternate. The duration of each of
-     * these states is determined with the onTime and the offTime random
-     * variables. During the "Off" state, no traffic is generated.
-     * During the "On" state, cbr traffic is generated. This cbr traffic is
-     * characterized by the specified "data rate" and "packet size".
-     */
-    /**
-     * \ingroup onoff
-     *
-     * \brief Generate traffic to a single destination according to an
-     *        OnOff pattern.
-     *
-     * This traffic generator follows an On/Off pattern: after
-     * Application::StartApplication
-     * is called, "On" and "Off" states alternate. The duration of each of
-     * these states is determined with the onTime and the offTime random
-     * variables. During the "Off" state, no traffic is generated.
-     * During the "On" state, cbr traffic is generated. This cbr traffic is
-     * characterized by the specified "data rate" and "packet size".
-     *
-     * Note:  When an application is started, the first packet transmission
-     * occurs _after_ a delay equal to (packet size/bit rate).  Note also,
-     * when an application transitions into an off state in between packet
-     * transmissions, the remaining time until when the next transmission
-     * would have occurred is cached and is used when the application starts
-     * up again.  Example:  packet size = 1000 bits, bit rate = 500 bits/sec.
-     * If the application is started at time 3 seconds, the first packet
-     * transmission will be scheduled for time 5 seconds (3 + 1000/500)
-     * and subsequent transmissions at 2 second intervals.  If the above
-     * application were instead stopped at time 4 seconds, and restarted at
-     * time 5.5 seconds, then the first packet would be sent at time 6.5 seconds,
-     * because when it was stopped at 4 seconds, there was only 1 second remaining
-     * until the originally scheduled transmission, and this time remaining
-     * information is cached and used to schedule the next transmission
-     * upon restarting.
-     *
-     * If the underlying socket type supports broadcast, this application
-     * will automatically enable the SetAllowBroadcast(true) socket option.
-     *
-     * If the attribute "EnableSeqTsSizeHeader" is enabled, the application will
-     * use some bytes of the payload to store an header with a sequence number,
-     * a timestamp, and the size of the packet sent. Support for extracting
-     * statistics from this header have been added to \c ns3::PacketSink
-     * (enable its "EnableSeqTsSizeHeader" attribute), or users may extract
-     * the header via trace sources.  Note that the continuity of the sequence
-     * number may be disrupted across On/Off cycles.
-     */
     class ERGCApplication : public Application
     {
     public:
@@ -108,19 +54,48 @@ namespace ns3
         virtual void StopApplication(void);  // Called at time specified by Stop
 
         // helpers
-        void handleBSStartEvent();
+        void
+        isClusterHead();
+        void
+        handleBSStartEvent();
 
-        void handleNodeStartEvent();
+        void
+        handleNodeStartEvent();
 
-        void SendPacketWithK();
-        void HandleRead(Ptr<Socket> socket);
-        void HandleCudeLengthAssignPacket(Ptr<Packet> &packet);
-        void StartClusteringPhase();
-        void ScheduleClusterHeadSelectionPhase();
+        void
+        SendPacketWithK();
+
+        void
+        HandleRead(Ptr<Socket> socket);
+
+        void
+        HandleCubeLengthAssignPacket(Ptr<Packet> &packet);
+
+        void
+        StartClusteringPhase();
+
+        void
+        ScheduleClusterHeadSelectionPhase();
+
+        void
+        clusterHeadMessageTimeout();
+
+        void
+        HandleClusterHeadSelection(Ptr<Packet> packet);
+
+        void
+        StartQueryingClusterNeighborPhase();
+
+        void
+        HandleAddClusterNeighbor(Ptr<Packet> packet);
+
+        void
+        SendClusterHeadSelectionMsg();
         /**
          * \brief Cancel all pending events.
          */
-        void CancelEvents();
+        void
+        CancelEvents();
 
         // Event handlers
         /**
@@ -149,12 +124,16 @@ namespace ns3
         Time m_lastStartTime;                //!< Time last packet sent
         uint64_t m_maxBytes;                 //!< Limit total number of bytes sent
         uint64_t m_totBytes;                 //!< Total bytes sent so far
-        EventId m_BSSentKEvent;              //!< Event id for next start or stop event
-        EventId m_sendEvent;                 //!< Event id of pending "send packet" event
         TypeId m_tid;                        //!< Type of the socket used
         uint32_t m_seq{0};                   //!< Sequence
         Ptr<Packet> m_unsentPacket;          //!< Unsent packet cached for future attempt
         bool m_enableSeqTsSizeHeader{false}; //!< Enable or disable the use of SeqTsSizeHeader
+        // ERGC Algorithm Variables
+        EventId m_BSSentKEvent;                                               //!< Event id for BS sent k
+        EventId m_sendClusMsgEvent;                                           //!< Event id of cluster msg event
+        bool m_clusterHead{true};                                             //!< before cluster head selection every node is a cluster head
+        std::map<AquaSimAddress, ClusterHeadSelectionHeader> clusterList;     // key -> address of the child node of this cluster header
+        std::map<AquaSimAddress, ClusterNeighborHeader> neighborClusterTable; // key -> address of the neighbor cluster header
         Time m_maxClusterHeadSelectionTime{Time(10)};
         /// Traced Callback: transmitted packets.
         TracedCallback<Ptr<const Packet>> m_txTrace;

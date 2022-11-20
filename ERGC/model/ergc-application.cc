@@ -110,6 +110,12 @@ namespace ns3
     }
 
     void
+    ERGCApplication::isClusterHead()
+    {
+        return m_clusterHead;
+    }
+
+    void
     ERGCApplication::SetMaxBytes(uint64_t maxBytes)
     {
         NS_LOG_FUNCTION(this << maxBytes);
@@ -186,7 +192,6 @@ namespace ns3
     ERGCApplication::SendPacketWithK()
     {
         NS_LOG_FUNCTION(this);
-        NS_ASSERT(m_sendEvent.IsExpired());
         u_int32_t k_mtrs = GetNode()->GetObject<ERGCNodeProps>()->m_k_mtrs;
         CubeLengthHeader cubeLengthHeader;
         cubeLengthHeader.SetKMtrs(k_mtrs);
@@ -213,10 +218,28 @@ namespace ns3
             CubeLengthHeader cubeLengthTs;
             if (packet->PeekHeader(cubeLengthTs))
             {
-                HandleCudeLengthAssignPacket(packet);
+                HandleCubeLengthAssignPacket(packet);
                 StartClusteringPhase();
                 return;
             }
+            ClusterHeadSelectionHeader clusterHSH;
+            if (packet->PeekHeader(clusterHSH))
+            {
+                HandleClusterHeadSelection(packet);
+                if (isClusterHead)
+                {
+                    StartQueryingClusterNeighborPhase();
+                }
+                // StartSendingData();
+                return;
+            }
+            ClusterNeighborHeader clusterNH;
+            if (packet->PeekHeader(clusterNH))
+            {
+                HandleAddClusterNeighbor(packet);
+                return;
+            }
+            return;
         }
     }
 
@@ -229,16 +252,27 @@ namespace ns3
         Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
         u_int32_t k_mtrs = ergcNodeProps->m_k_mtrs;
         ergcNodeProps->m_scIndex = ERGCNodeProps::SCIndex(nodePosition, k_mtrs);
-        Time time = ergcNodeProps->GetWaitTimeToBroadCastClusterHeadMsg(residualEnergy,nodePosition, m_maxClusterHeadSelectionTime);
-        NS_LOG_INFO("Node " << GetNode()->GetId() << " SC Index: " << (ergcNodeProps->m_scIndex) <<" "<< time.GetDouble());
+        Time time = ergcNodeProps->GetWaitTimeToBroadCastClusterHeadMsg(
+            residualEnergy,
+            nodePosition,
+            m_maxClusterHeadSelectionTime);
+        NS_LOG_INFO("Node " << GetNode()->GetId() << " SC Index: " << (ergcNodeProps->m_scIndex) << " " << time.GetDouble());
         ScheduleClusterHeadSelectionPhase();
     }
 
     void
     ERGCApplication::ScheduleClusterHeadSelectionPhase()
     {
-
-        // Simulator::Schedule(lengthOfTimeTi, callTimeOutCallback);
+        ns3::Vector nodePosition = GetNode()->GetObject<MobilityModel>()->GetPosition();
+        Ptr<AquaSimNetDevice> asqd = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
+        double residualEnergy = asqd->EnergyModel()->GetEnergy();
+        Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
+        Time time = ergcNodeProps->GetWaitTimeToBroadCastClusterHeadMsg(
+            residualEnergy,
+            nodePosition,
+            m_maxClusterHeadSelectionTime);
+        std::cout << Simulator::Now() << std::endl;
+        Simulator::Schedule(time, &ERGCApplication::clusterHeadMessageTimeout, this);
         // ClusterT = 1;
         // while (Ti != 0)
         // {
@@ -265,23 +299,51 @@ namespace ns3
         // }
     }
 
-    // void
-    // callTimeOutCallBack(int k_in_mtrs, double residualEnergy, double distBtwNodeiAndBS, Vector nodeiPosition, Vector nodeiSCIndex, int lengthofTimerTi, AquasimAddress nodeId)
-    // {
-    //     Broadcast(packetWithClusterHeadSelectionHeader); // of the given nodeid
-    //     ReadCluMsg(j);
-    //     if (nodeiSCIndex == nodejSCIndex)
-    //     {
-    //         if (ClusterTj == 1)
-    //         {
-    //             ClusterT = 0;
-    //             ClusterHead = j;
-    //         }
-    //     }
-    // }
+    void
+    ERGCApplication::clusterHeadMessageTimeout()
+    {
+        int k_in_mtrs;
+        double residualEnergy;
+        double distBtwNodeiAndBS;
+        Vector nodeiPosition;
+        Vector nodeiSCIndex;
+        int lengthofTimerTi;
+        AquaSimAddress nodeId;
+        u_int32_t k_mtrs = GetNode()->GetObject<ERGCNodeProps>()->m_k_mtrs;
+        ClusterHeadSelectionHeader clusHeadSelectionH;
+        clusHeadSelectionH.SetNodeId();
+        clusHeadSelectionH.SetNodePosition();
+        clusHeadSelectionH.SetSCIndex();
+        clusHeadSelectionH.SetDistBtwNodeAndBS();
+        clusHeadSelectionH.SetResidualEnrg();
+        if ()
+            Ptr<Packet> packet = Create<Packet>(cubeLengthHeader.GetSerializedSize());
+        packet->AddHeader(cubeLengthHeader);
+        m_socket->Send(packet);
+        m_lastStartTime = Simulator::Now();
+        // Broadcast(packetWithClusterHeadSelectionHeader); // of the given nodeid
+        // ReadCluMsg(j);
+        // if (nodeiSCIndex == nodejSCIndex)
+        // {
+        //     if (ClusterTj == 1)
+        //     {
+        //         ClusterT = 0;
+        //         ClusterHead = j;
+        //     }
+        // }
+    }
+
+    void ERGCApplication::SendClusterHeadSelectionMsg()
+    {
+    }
+
+    void StartQueryingClusterNeighborPhase()
+    {
+        NS_LOG_DEBUG("Starting Cluster Neighbor Phase");
+    }
 
     void
-    ERGCApplication::HandleCudeLengthAssignPacket(Ptr<Packet> &packet)
+    ERGCApplication::HandleCubeLengthAssignPacket(Ptr<Packet> &packet)
     {
         CubeLengthHeader cubeLengthTs;
         packet->RemoveHeader(cubeLengthTs);
