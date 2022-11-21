@@ -72,8 +72,8 @@ namespace ns3
   ns3::Vector 
   ERGCNodeProps::SCIndex(ns3::Vector nodePosition, int edgeLengthK)
   {
-    int xValue = std::ceil(nodePosition.x);
-    int yValue = std::ceil(nodePosition.y);
+    int xValue = std::floor(nodePosition.x);
+    int yValue = std::floor(nodePosition.y);
     int zValue = std::abs(std::ceil(nodePosition.z));
     int m = (edgeLengthK - xValue % edgeLengthK + xValue) / edgeLengthK;
     int n = (edgeLengthK - yValue % edgeLengthK + yValue) / edgeLengthK;

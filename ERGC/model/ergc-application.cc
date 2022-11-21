@@ -365,7 +365,6 @@ namespace ns3
         }
        NS_LOG_INFO("Timeout time: "<<(time).GetDouble());
        m_sendClusMsgEvent = Simulator::Schedule(time, &ERGCApplication::clusterHeadMessageTimeout, this);
-       Simulator::Schedule(m_maxClusterHeadSelectionTime, &ERGCApplication::NotifyNodesThatIamClusterHead, this);
     }
 
     void ERGCApplication::clusterHeadMessageTimeout()
@@ -381,6 +380,7 @@ namespace ns3
         packet->AddHeader(clusHeadSelectionH);
         m_socket->Send(packet);
         m_lastStartTime = Simulator::Now();
+        Simulator::Schedule(m_maxClusterHeadSelectionTime, &ERGCApplication::NotifyNodesThatIamClusterHead,this);
     }
 
     void ERGCApplication::SendClusterHeadSelectionMsg()
@@ -433,6 +433,7 @@ namespace ns3
     }
 
     void ERGCApplication::NotifyNodesThatIamClusterHead(){
+        NS_LOG_INFO("value: "<<m_clusterHead);
         if(m_clusterHead == false) return;
         ClusterHeadSelectionHeader clusHeadSelectionH;
         clusHeadSelectionH.SetNodeId(getNodeId());
@@ -444,6 +445,7 @@ namespace ns3
         Ptr<Packet> packet = Create<Packet>(clusHeadSelectionH.GetSerializedSize());
         packet->AddHeader(clusHeadSelectionH);
         std::map<AquaSimAddress, ClusterHeadSelectionHeader>::iterator it;
+        NS_LOG_INFO("Cluster Nodes: "<<m_clusterList.size());
         for(it = m_clusterList.begin();it!= m_clusterList.end();it++){
             Ptr<Socket> socket = Socket::CreateSocket(GetNode(), m_tid);
             int ret = -1;
