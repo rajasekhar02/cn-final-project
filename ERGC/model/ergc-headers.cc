@@ -103,6 +103,7 @@ ClusterHeadSelectionHeader::Deserialize(Buffer::Iterator start)
     m_scIndex.z = ((double)i.ReadU32()) / 1000.0;
     m_distBtwNodeAndBS = ((double)i.ReadU32()) / 1000.0;
     m_residualEnrg = ((double)i.ReadU32()) / 1000.0;
+    m_isClusterHeadMsg = i.ReadU8();
     return GetSerializedSize();
 }
 
@@ -110,7 +111,7 @@ uint32_t
 ClusterHeadSelectionHeader::GetSerializedSize(void) const
 {
     // reserved bytes for header
-    return (2 + 12 + 12 + 4 + 4);
+    return (2 + 12 + 12 + 4 + 4 + 1);
 }
 
 void ClusterHeadSelectionHeader::Serialize(Buffer::Iterator start) const
@@ -131,6 +132,7 @@ void ClusterHeadSelectionHeader::Serialize(Buffer::Iterator start) const
 
     i.WriteU32((uint32_t)(m_distBtwNodeAndBS * 1000.0 + 0.5));
     i.WriteU32((uint32_t)(m_residualEnrg * 1000.0 + 0.5));
+    i.WriteU8(m_isClusterHeadMsg);
 }
 
 void ClusterHeadSelectionHeader::Print(std::ostream &os) const
@@ -140,6 +142,7 @@ void ClusterHeadSelectionHeader::Print(std::ostream &os) const
        << " SCIndex=" << m_scIndex
        << " DistBtwNodeAndBS=" << m_distBtwNodeAndBS
        << " ResidualEnergy=" << m_residualEnrg
+       << " isClusterHeadMsg" << m_isClusterHeadMsg
        << "\n";
 }
 
@@ -174,6 +177,11 @@ double ClusterHeadSelectionHeader::GetResidualEnrg()
     return m_residualEnrg;
 }
 
+u_int8_t ClusterHeadSelectionHeader::GetIsClusterHeadMsg()
+{
+    return m_isClusterHeadMsg;
+}
+
 void ClusterHeadSelectionHeader::SetNodeId(AquaSimAddress nodeId)
 {
     m_nodeId = nodeId;
@@ -193,6 +201,10 @@ void ClusterHeadSelectionHeader::SetDistBtwNodeAndBS(double distBtwNodeAndBS)
 void ClusterHeadSelectionHeader::SetResidualEnrg(double residualEnrg)
 {
     m_residualEnrg = residualEnrg;
+}
+void ClusterHeadSelectionHeader::SetIsClusterHeadMsg(u_int8_t isClusterHeadMsg)
+{
+    m_isClusterHeadMsg = isClusterHeadMsg;
 }
 
 //------------------------------------------------------------------

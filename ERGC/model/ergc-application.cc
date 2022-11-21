@@ -94,12 +94,12 @@ namespace ns3
     }
 
     ERGCApplication::ERGCApplication()
-        : m_socket(0),
-          m_connected(false),
+        : m_connected(false),
           m_residualBits(0),
           m_lastStartTime(Seconds(0)),
           m_totBytes(0),
-          m_unsentPacket(0)
+          m_unsentPacket(0),
+          m_socket(0)
     {
         NS_LOG_FUNCTION(this);
     }
@@ -109,7 +109,7 @@ namespace ns3
         NS_LOG_FUNCTION(this);
     }
 
-    void
+    bool
     ERGCApplication::isClusterHead()
     {
         return m_clusterHead;
@@ -129,12 +129,52 @@ namespace ns3
         return m_socket;
     }
 
+    u_int32_t ERGCApplication::getK()
+    {
+        Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
+        return ergcNodeProps->m_k_mtrs;
+    }
+
+    ns3::Vector ERGCApplication::getNodePosition()
+    {
+        return GetNode()->GetObject<MobilityModel>()->GetPosition();
+    }
+
+    ns3::Vector ERGCApplication::getBSPosition()
+    {
+        Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
+        return ergcNodeProps->m_BSPosition;
+    }
+
+    ns3::Vector ERGCApplication::getSCIndex()
+    {
+        Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
+        return ergcNodeProps->m_scIndex;
+    }
+
+    double ERGCApplication::getResidualEnergy()
+    {
+        Ptr<AquaSimNetDevice> asqd = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
+        return asqd->EnergyModel()->GetEnergy();
+    }
+
+    double ERGCApplication::getDistBtwNodeAndBS()
+    {
+        ns3::Vector nodePosition = GetNode()->GetObject<MobilityModel>()->GetPosition();
+        return ERGCNodeProps::distanceBTW(nodePosition, getBSPosition());
+    }
+
+    AquaSimAddress ERGCApplication::getNodeId()
+    {
+        return AquaSimAddress::ConvertFrom(GetNode()->GetDevice(0)->GetAddress());
+    }
+
     void
     ERGCApplication::DoDispose(void)
     {
         NS_LOG_FUNCTION(this);
 
-        CancelEvents();
+        // CancelEvents();
         m_socket = 0;
         m_unsentPacket = 0;
         // chain up
@@ -153,7 +193,6 @@ namespace ns3
         if (!m_socket)
         {
             m_socket = Socket::CreateSocket(GetNode(), m_tid);
-            GetNode()->GetDevice(0)->AggregateObject(m_socket);
             int ret = -1;
             ret = m_socket->Bind();
             if (ret == -1)
@@ -170,6 +209,7 @@ namespace ns3
         std::string nodeType = GetNode()->GetObject<ERGCNodeProps>()->m_nodeType;
         if (nodeType == "BS")
         {
+            m_receivedK = true;
             handleBSStartEvent();
         }
         else
@@ -199,7 +239,7 @@ namespace ns3
         packet->AddHeader(cubeLengthHeader);
         m_socket->Send(packet);
         m_lastStartTime = Simulator::Now();
-        NS_LOG_INFO("BS Broadcasted k: " << k_mtrs << '\n');
+        NS_LOG_INFO("BS Broadcasted k: " << k_mtrs <<" "<< m_lastStartTime << '\n');
     }
 
     void
@@ -216,20 +256,24 @@ namespace ns3
                 return;
 
             CubeLengthHeader cubeLengthTs;
-            if (packet->PeekHeader(cubeLengthTs))
+            ClusterHeadSelectionHeader clusterHSH;
+            // std::cout<<packet->PeekHeader(clusterHSH)<<std::endl;
+            // 
+            if (packet->PeekHeader(cubeLengthTs) && !m_receivedK)
             {
                 HandleCubeLengthAssignPacket(packet);
+                packet = 0;
                 StartClusteringPhase();
                 return;
             }
-            ClusterHeadSelectionHeader clusterHSH;
+           
             if (packet->PeekHeader(clusterHSH))
             {
                 HandleClusterHeadSelection(packet);
-                if (isClusterHead)
-                {
-                    StartQueryingClusterNeighborPhase();
-                }
+                // if (isClusterHead )
+                // {
+                //     StartQueryingClusterNeighborPhase();
+                // }
                 // StartSendingData();
                 return;
             }
@@ -243,25 +287,69 @@ namespace ns3
         }
     }
 
-    void
-    ERGCApplication::StartClusteringPhase()
+    void ERGCApplication::HandleCubeLengthAssignPacket(Ptr<Packet> &packet)
     {
-        ns3::Vector nodePosition = GetNode()->GetObject<MobilityModel>()->GetPosition();
-        Ptr<AquaSimNetDevice> asqd = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
-        double residualEnergy = asqd->EnergyModel()->GetEnergy();
+        CubeLengthHeader cubeLengthTs;
+        packet->RemoveHeader(cubeLengthTs);
         Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
-        u_int32_t k_mtrs = ergcNodeProps->m_k_mtrs;
-        ergcNodeProps->m_scIndex = ERGCNodeProps::SCIndex(nodePosition, k_mtrs);
-        Time time = ergcNodeProps->GetWaitTimeToBroadCastClusterHeadMsg(
-            residualEnergy,
-            nodePosition,
-            m_maxClusterHeadSelectionTime);
-        NS_LOG_INFO("Node " << GetNode()->GetId() << " SC Index: " << (ergcNodeProps->m_scIndex) << " " << time.GetDouble());
+        ergcNodeProps->m_k_mtrs = cubeLengthTs.GetKMtrs();
+        m_receivedK = true;
+        NS_LOG_INFO("Node " << GetNode()->GetId() << " Received k: " << cubeLengthTs.GetKMtrs());
+    }
+
+
+    void ERGCApplication::HandleClusterHeadSelection(Ptr<Packet> packet)
+    {
+        ClusterHeadSelectionHeader clusHeadSelectionH;
+        packet->RemoveHeader(clusHeadSelectionH);
+        if (getSCIndex() == clusHeadSelectionH.GetSCIndex())
+        {
+            NS_LOG_INFO(getSCIndex() << "---" << clusHeadSelectionH.GetSCIndex());
+            if (m_sendClusMsgEvent.IsRunning())
+            {
+                NS_LOG_INFO("Listening for cluster head msg running");
+                double Ci = getResidualEnergy() / getDistBtwNodeAndBS();
+                double Cj = clusHeadSelectionH.GetResidualEnrg() / clusHeadSelectionH.GetDistBtwNodeAndBS();
+
+                if (Ci < Cj)
+                {
+                    m_clusterHead = false;
+                    CancelClusHeadSelectionSendEvent();
+                }
+                else
+                {
+                    //             // Node i can be the cluster head for node j
+                    //             // Node i has property clusterlist and sizeOfClusterList
+                    //             // Node i updates it cluster list
+                    m_clusterList[clusHeadSelectionH.GetNodeId()] = clusHeadSelectionH;
+                    // sizeOfClusterList++;
+                }
+                return;
+            }
+            // }
+            if (clusHeadSelectionH.GetIsClusterHeadMsg())
+            {
+                // how will i find the what are the nodes that are cluster heads
+                // where will i store the information
+                // after the Tmax out every cluster head will send msg to its children indicating that it is cluster head
+                m_clusterHead = false;
+                m_clusterHeadInfo = clusHeadSelectionH;
+                NS_LOG_INFO("Node " << clusHeadSelectionH.GetNodeId()<<" SC Index" << clusHeadSelectionH.GetSCIndex());
+            }
+        }
+    }
+
+
+
+    void ERGCApplication::StartClusteringPhase()
+    {
+        Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
+        ergcNodeProps->m_scIndex = ERGCNodeProps::SCIndex(getNodePosition(), getK());
+        NS_LOG_INFO("Node " << GetNode()->GetId() << " SC Index: " << (ergcNodeProps->m_scIndex));
         ScheduleClusterHeadSelectionPhase();
     }
 
-    void
-    ERGCApplication::ScheduleClusterHeadSelectionPhase()
+    void ERGCApplication::ScheduleClusterHeadSelectionPhase()
     {
         ns3::Vector nodePosition = GetNode()->GetObject<MobilityModel>()->GetPosition();
         Ptr<AquaSimNetDevice> asqd = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
@@ -271,93 +359,46 @@ namespace ns3
             residualEnergy,
             nodePosition,
             m_maxClusterHeadSelectionTime);
-        std::cout << Simulator::Now() << std::endl;
-        Simulator::Schedule(time, &ERGCApplication::clusterHeadMessageTimeout, this);
-        // ClusterT = 1;
-        // while (Ti != 0)
-        // {
-        //     ReadCluMsg(j);
-        //     if (nodeiSCIndex == nodejSCIndex)
-        //     {
-        //         Ci = residualEnergy / distBtnNodeiAndBS;
-        //         Cj = residualEnergyOfJ / distBtnNodeiAndBS;
-        //         if (Ci < Cj)
-        //         {
-        //             // node i can choose the cluster but node j will make the node i as it child
-        //             ClusterT = 0;
-        //             Ti = 0;
-        //         }
-        //         else
-        //         {
-        //             // Node i can be the cluster head for node j
-        //             // Node i has property clusterlist and sizeOfClusterList
-        //             // Node i updates it cluster list
-        //             ClusterList[sizeOfClusterList] = j;
-        //             sizeOfClusterList++;
-        //         }
-        //     }
-        // }
+        if(time.GetDouble()<0) {
+            m_clusterHead = false;
+            return;
+        }
+       NS_LOG_INFO("Timeout time: "<<(time).GetDouble());
+       m_sendClusMsgEvent = Simulator::Schedule(time, &ERGCApplication::clusterHeadMessageTimeout, this);
+       Simulator::Schedule(m_maxClusterHeadSelectionTime, &ERGCApplication::NotifyNodesThatIamClusterHead, this);
     }
 
-    void
-    ERGCApplication::clusterHeadMessageTimeout()
+    void ERGCApplication::clusterHeadMessageTimeout()
     {
-        int k_in_mtrs;
-        double residualEnergy;
-        double distBtwNodeiAndBS;
-        Vector nodeiPosition;
-        Vector nodeiSCIndex;
-        int lengthofTimerTi;
-        AquaSimAddress nodeId;
-        u_int32_t k_mtrs = GetNode()->GetObject<ERGCNodeProps>()->m_k_mtrs;
         ClusterHeadSelectionHeader clusHeadSelectionH;
-        clusHeadSelectionH.SetNodeId();
-        clusHeadSelectionH.SetNodePosition();
-        clusHeadSelectionH.SetSCIndex();
-        clusHeadSelectionH.SetDistBtwNodeAndBS();
-        clusHeadSelectionH.SetResidualEnrg();
-        if ()
-            Ptr<Packet> packet = Create<Packet>(cubeLengthHeader.GetSerializedSize());
-        packet->AddHeader(cubeLengthHeader);
+        clusHeadSelectionH.SetNodeId(getNodeId());
+        clusHeadSelectionH.SetNodePosition(getNodePosition());
+        clusHeadSelectionH.SetSCIndex(getSCIndex());
+        clusHeadSelectionH.SetDistBtwNodeAndBS(getDistBtwNodeAndBS());
+        clusHeadSelectionH.SetResidualEnrg(getResidualEnergy());
+        clusHeadSelectionH.SetIsClusterHeadMsg(0);
+        Ptr<Packet> packet = Create<Packet>(clusHeadSelectionH.GetSerializedSize());
+        packet->AddHeader(clusHeadSelectionH);
         m_socket->Send(packet);
         m_lastStartTime = Simulator::Now();
-        // Broadcast(packetWithClusterHeadSelectionHeader); // of the given nodeid
-        // ReadCluMsg(j);
-        // if (nodeiSCIndex == nodejSCIndex)
-        // {
-        //     if (ClusterTj == 1)
-        //     {
-        //         ClusterT = 0;
-        //         ClusterHead = j;
-        //     }
-        // }
     }
 
     void ERGCApplication::SendClusterHeadSelectionMsg()
     {
     }
 
+    void ERGCApplication::HandleAddClusterNeighbor(Ptr<Packet> packet) {}
+
     void StartQueryingClusterNeighborPhase()
     {
         NS_LOG_DEBUG("Starting Cluster Neighbor Phase");
     }
 
-    void
-    ERGCApplication::HandleCubeLengthAssignPacket(Ptr<Packet> &packet)
-    {
-        CubeLengthHeader cubeLengthTs;
-        packet->RemoveHeader(cubeLengthTs);
-        Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
-        ergcNodeProps->m_k_mtrs = cubeLengthTs.GetKMtrs();
-        NS_LOG_INFO("Node " << GetNode()->GetId() << " Received k: " << ergcNodeProps->m_k_mtrs);
-    }
-
-    void
-    ERGCApplication::StopApplication() // Called at time specified by Stop
+    void ERGCApplication::StopApplication() // Called at time specified by Stop
     {
         NS_LOG_FUNCTION(this);
 
-        CancelEvents();
+        // CancelEvents();
         if (m_socket != 0)
         {
             m_socket->Close();
@@ -368,42 +409,73 @@ namespace ns3
         }
     }
 
-    void
-    ERGCApplication::CancelEvents()
+    void ERGCApplication::CancelClusHeadSelectionSendEvent()
     {
         NS_LOG_FUNCTION(this);
-
-        if (m_sendEvent.IsRunning() && m_cbrRateFailSafe == m_cbrRate)
-        { // Cancel the pending send packet event
-            // Calculate residual bits since last packet sent
-            Time delta(Simulator::Now() - m_lastStartTime);
-            int64x64_t bits = delta.To(Time::S) * m_cbrRate.GetBitRate();
-            m_residualBits += bits.GetHigh();
-        }
-        m_cbrRateFailSafe = m_cbrRate;
-        Simulator::Cancel(m_sendEvent);
-        Simulator::Cancel(m_BSSentKEvent);
-        // Canceling events may cause discontinuity in sequence number if the
-        // SeqTsSizeHeader is header, and m_unsentPacket is true
-        if (m_unsentPacket)
-        {
-            NS_LOG_DEBUG("Discarding cached packet upon CancelEvents ()");
-        }
-        m_unsentPacket = 0;
+        Simulator::Cancel(m_sendClusMsgEvent);
+        // if (m_sendEvent.IsRunning() && m_cbrRateFailSafe == m_cbrRate)
+        // { // Cancel the pending send packet event
+        //     // Calculate residual bits since last packet sent
+        //     Time delta(Simulator::Now() - m_lastStartTime);
+        //     int64x64_t bits = delta.To(Time::S) * m_cbrRate.GetBitRate();
+        //     m_residualBits += bits.GetHigh();
+        // }
+        // m_cbrRateFailSafe = m_cbrRate;
+        // Simulator::Cancel(m_sendEvent);
+        // Simulator::Cancel(m_BSSentKEvent);
+        // // Canceling events may cause discontinuity in sequence number if the
+        // // SeqTsSizeHeader is header, and m_unsentPacket is true
+        // if (m_unsentPacket)
+        // {
+        //     NS_LOG_DEBUG("Discarding cached packet upon CancelEvents ()");
+        // }
+        // m_unsentPacket = 0;
     }
 
+    void ERGCApplication::NotifyNodesThatIamClusterHead(){
+        if(m_clusterHead == false) return;
+        ClusterHeadSelectionHeader clusHeadSelectionH;
+        clusHeadSelectionH.SetNodeId(getNodeId());
+        clusHeadSelectionH.SetNodePosition(getNodePosition());
+        clusHeadSelectionH.SetSCIndex(getSCIndex());
+        clusHeadSelectionH.SetDistBtwNodeAndBS(getDistBtwNodeAndBS());
+        clusHeadSelectionH.SetResidualEnrg(getResidualEnergy());
+        clusHeadSelectionH.SetIsClusterHeadMsg(1);
+        Ptr<Packet> packet = Create<Packet>(clusHeadSelectionH.GetSerializedSize());
+        packet->AddHeader(clusHeadSelectionH);
+        std::map<AquaSimAddress, ClusterHeadSelectionHeader>::iterator it;
+        for(it = m_clusterList.begin();it!= m_clusterList.end();it++){
+            Ptr<Socket> socket = Socket::CreateSocket(GetNode(), m_tid);
+            int ret = -1;
+            ret = socket->Bind();
+            if (ret == -1)
+            {
+                NS_FATAL_ERROR("Failed to bind socket");
+            }
+            PacketSocketAddress pSocket;
+            pSocket.SetSingleDevice(0);
+            pSocket.SetPhysicalAddress((Address)it->first);
+            pSocket.SetProtocol(0);
+            socket->Connect(pSocket);
+            socket->SetAllowBroadcast(false);
+            socket->SetConnectCallback(
+            MakeCallback(&ERGCApplication::ConnectionSucceeded, this),
+            MakeCallback(&ERGCApplication::ConnectionFailed, this));
+            socket->SetRecvCallback(MakeCallback(&ERGCApplication::HandleRead, this));
+            m_clusterSocketList[it->first] = socket;
+            socket->Send(packet);
+        }
+    }
     // Event handlers
 
     // Private helpers
-    void
-    ERGCApplication::ConnectionSucceeded(Ptr<Socket> socket)
+    void ERGCApplication::ConnectionSucceeded(Ptr<Socket> socket)
     {
         NS_LOG_FUNCTION(this << socket);
         m_connected = true;
     }
 
-    void
-    ERGCApplication::ConnectionFailed(Ptr<Socket> socket)
+    void ERGCApplication::ConnectionFailed(Ptr<Socket> socket)
     {
         NS_LOG_FUNCTION(this << socket);
         NS_FATAL_ERROR("Can't connect");

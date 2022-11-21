@@ -80,12 +80,14 @@ namespace ns3
         Vector GetSCIndex();
         double GetDistBtwNodeAndBS();
         double GetResidualEnrg();
+        u_int8_t GetIsClusterHeadMsg();
 
         void SetNodeId(AquaSimAddress nodeId);
         void SetNodePosition(Vector nodePosition);
         void SetSCIndex(Vector scIndex);
         void SetDistBtwNodeAndBS(double distBtwNodeAndBS);
         void SetResidualEnrg(double residualEnrg);
+        void SetIsClusterHeadMsg(u_int8_t isClusterHeadMsg);
 
         // inherited methods
         virtual uint32_t GetSerializedSize(void) const;
@@ -100,6 +102,7 @@ namespace ns3
         Vector m_scIndex;
         double m_distBtwNodeAndBS;
         double m_residualEnrg;
+        u_int8_t m_isClusterHeadMsg;
     }; // class ClusterHeadSelectionHeader
 
     class ClusterNeighborHeader : public Header

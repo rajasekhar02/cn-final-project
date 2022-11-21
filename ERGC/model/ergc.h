@@ -33,18 +33,18 @@ namespace ns3
 	class SceneParams
 	{
 	public:
-		int big_cube_x_mtrs = 500;
-		int big_cube_y_mtrs = 500;
-		int big_cube_z_mtrs = 500;
+		int big_cube_x_mtrs = 50;
+		int big_cube_y_mtrs = 50;
+		int big_cube_z_mtrs = 50;
 		int base_station_x = 0;
 		int base_station_y = 0;
 		int base_station_z = 0;
-		int simulation_rounds = 10;
+		int simulation_rounds = 1000;
 		int no_of_sinks = 1;
-		int no_of_nodes = 400;
-		int k_mtrs = 50; // edit the node_communication_range_mtrs also to the same value
+		int no_of_nodes = 25;
+		int k_mtrs = 25; // edit the node_communication_range_mtrs also to the same value
 		int node_velocity = 1;
-		int node_communication_range_mtrs = std::sqrt(3) * 2 * 50;
+		int node_communication_range_mtrs =  25;// std::sqrt(3) * 2 * 50;
 	};
 
 	// class EnergyModel;

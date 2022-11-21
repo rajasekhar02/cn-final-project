@@ -54,8 +54,23 @@ namespace ns3
         virtual void StopApplication(void);  // Called at time specified by Stop
 
         // helpers
-        void
-        isClusterHead();
+        bool isClusterHead();
+
+        u_int32_t getK();
+
+        ns3::Vector getBSPosition();
+
+        ns3::Vector getSCIndex();
+
+        ns3::Vector getNodePosition();
+
+        double getResidualEnergy();
+
+        double getDistBtwNodeAndBS();
+
+        ns3::AquaSimAddress getNodeId();
+
+
         void
         handleBSStartEvent();
 
@@ -91,11 +106,15 @@ namespace ns3
 
         void
         SendClusterHeadSelectionMsg();
+
+        void
+        NotifyNodesThatIamClusterHead();
+
         /**
          * \brief Cancel all pending events.
          */
         void
-        CancelEvents();
+        CancelClusHeadSelectionSendEvent();
 
         // Event handlers
         /**
@@ -111,8 +130,6 @@ namespace ns3
          */
         void SendPacket();
 
-        Ptr<Socket> m_socket;                //!< Associated socket
-        Address m_peer;                      //!< Peer address
         Address m_local;                     //!< Local address to bind to
         bool m_connected;                    //!< True if connected
         Ptr<RandomVariableStream> m_onTime;  //!< rng for On Time
@@ -129,12 +146,17 @@ namespace ns3
         Ptr<Packet> m_unsentPacket;          //!< Unsent packet cached for future attempt
         bool m_enableSeqTsSizeHeader{false}; //!< Enable or disable the use of SeqTsSizeHeader
         // ERGC Algorithm Variables
-        EventId m_BSSentKEvent;                                               //!< Event id for BS sent k
-        EventId m_sendClusMsgEvent;                                           //!< Event id of cluster msg event
-        bool m_clusterHead{true};                                             //!< before cluster head selection every node is a cluster head
-        std::map<AquaSimAddress, ClusterHeadSelectionHeader> clusterList;     // key -> address of the child node of this cluster header
-        std::map<AquaSimAddress, ClusterNeighborHeader> neighborClusterTable; // key -> address of the neighbor cluster header
-        Time m_maxClusterHeadSelectionTime{Time(10)};
+        Ptr<Socket> m_socket;                //!< Associated socket
+        Address m_peer;                      //!< Peer address
+        EventId m_BSSentKEvent;                                                 //!< Event id for BS sent k
+        EventId m_sendClusMsgEvent;          //!< Event id of cluster msg event
+        bool m_receivedK{false};
+        bool m_clusterHead{true};                                               //!< before cluster head selection every node is a cluster head
+        ClusterHeadSelectionHeader m_clusterHeadInfo;                           //!< Cluster head information pointer
+        std::map<AquaSimAddress, ClusterHeadSelectionHeader> m_clusterList;     // key -> address of the child node of this cluster header
+        std::map<AquaSimAddress, Ptr<Socket> > m_clusterSocketList;
+        std::map<AquaSimAddress, ClusterNeighborHeader> m_neighborClusterTable; // key -> address of the neighbor cluster header
+        Time m_maxClusterHeadSelectionTime{"10s"};
         /// Traced Callback: transmitted packets.
         TracedCallback<Ptr<const Packet>> m_txTrace;
 
