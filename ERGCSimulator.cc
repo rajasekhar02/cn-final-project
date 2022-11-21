@@ -9,7 +9,10 @@
 
 #include "ns3/ergc.h"
 #include "ns3/ergc-headers.h"
-// #include "vector.h"
+#include <memory>
+#include <string>
+#include <stdexcept>
+
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("ERGCSimulator");
@@ -25,6 +28,18 @@ PacketSocketHelper socketHelper;
 AquaSimChannelHelper channel;
 AquaSimHelper asHelper;
 PacketSocketAddress socket;
+
+
+template<typename ... Args>
+std::string string_format( const std::string& format, Args ... args )
+{
+    int size_s = std::snprintf( nullptr, 0, format.c_str(), args ... ) + 1; // Extra space for '\0'
+    if( size_s <= 0 ){ throw std::runtime_error( "Error during formatting." ); }
+    auto size = static_cast<size_t>( size_s );
+    std::unique_ptr<char[]> buf( new char[ size ] );
+    std::snprintf( buf.get(), size, format.c_str(), args ... );
+    return std::string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
+}
 
 void initNodes()
 {
@@ -43,10 +58,10 @@ void initNodes()
     (*i)->AggregateObject(ergcNodeProps);
     devices.Add(aqnd);
   }
-
+  std::string positionRandomVariableStr = string_format("ns3::UniformRandomVariable[Min=1|Max=%d]",sceneparams.big_cube_x_mtrs);
   std::cout << "Initializing Nodes Mobility Model" << std::endl;
-  nodeMobility.SetPositionAllocator("ns3::RandomBoxPositionAllocator", "X", StringValue("ns3::UniformRandomVariable[Min=1|Max=500]"),
-                                    "Y", StringValue("ns3::UniformRandomVariable[Min=1|Max=500]"), "Z", StringValue("ns3::UniformRandomVariable[Min=1|Max=500]"));
+  nodeMobility.SetPositionAllocator("ns3::RandomBoxPositionAllocator", "X", StringValue(positionRandomVariableStr),
+                                    "Y", StringValue(positionRandomVariableStr), "Z", StringValue(positionRandomVariableStr));
   nodeMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
   nodeMobility.Install(nodesCon);
 }
@@ -62,7 +77,7 @@ void initBaseStation()
   ergcNodeProps->m_k_mtrs = sceneparams.k_mtrs;
   baseStationCon.Get(0)->AggregateObject(ergcNodeProps);
   devices.Add(asHelper.Create(baseStationCon.Get(0), newDevice));
-  newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
+  // newDevice->GetPhy()->SetTransRange(sceneparams.node_communication_range_mtrs);
 }
 
 void initBaseMobility()
