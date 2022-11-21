@@ -59,7 +59,7 @@ void initNodes()
     devices.Add(aqnd);
   }
   std::string positionRandomVariableStr = string_format("ns3::UniformRandomVariable[Min=1|Max=%d]",sceneparams.big_cube_x_mtrs);
-  std::cout << "Initializing Nodes Mobility Model" << std::endl;
+  std::cout << "Initializing Nodes Mobility Model" <<positionRandomVariableStr<< std::endl;
   nodeMobility.SetPositionAllocator("ns3::RandomBoxPositionAllocator", "X", StringValue(positionRandomVariableStr),
                                     "Y", StringValue(positionRandomVariableStr), "Z", StringValue(positionRandomVariableStr));
   nodeMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
