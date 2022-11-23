@@ -11,6 +11,7 @@
 
 namespace ns3
 {
+
 	class NodeSceneParams
 	{
 	public:
@@ -33,18 +34,18 @@ namespace ns3
 	class SceneParams
 	{
 	public:
-		int big_cube_x_mtrs = 50;
-		int big_cube_y_mtrs = 50;
-		int big_cube_z_mtrs = 50;
+		int big_cube_x_mtrs = 5;
+		int big_cube_y_mtrs = 5;
+		int big_cube_z_mtrs = 5;
 		int base_station_x = 0;
 		int base_station_y = 0;
 		int base_station_z = 0;
 		int simulation_rounds = 1000;
 		int no_of_sinks = 1;
 		int no_of_nodes = 25;
-		int k_mtrs = 25; // edit the node_communication_range_mtrs also to the same value
+		int k_mtrs = 2.5; // edit the node_communication_range_mtrs also to the same value
 		int node_velocity = 1;
-		int node_communication_range_mtrs =  25;// std::sqrt(3) * 2 * 50;
+		int node_communication_range_mtrs = 2.5; // std::sqrt(3) * 2 * 50;
 	};
 
 	// class EnergyModel;
@@ -85,13 +86,14 @@ namespace ns3
 
 		ERGCNodeProps();
 
-		ns3::Time GetWaitTimeToBroadCastClusterHeadMsg(double NodeResidualEnergy, Vector currentNodePosition,Time Tmax);
+		ns3::Time GetWaitTimeToBroadCastClusterHeadMsg(double NodeResidualEnergy, Vector currentNodePosition, Time Tmax);
+		double GetSqrt3Dist();
+		double GetSqrt6Dist();
 		static TypeId GetTypeId(void);
 		static double distanceBTW(ns3::Vector node1Position, ns3::Vector node2Position);
 		static double distanceBTWSCToBS(ns3::Vector scIndex, ns3::Vector BSPosition, u_int32_t k_mtrs);
 		static ns3::Vector SCIndex(ns3::Vector nodePosition, int edgeLengthK);
 		static ns3::Vector SCIndex2(ns3::Vector nodePosition, int edgeLengthK);
-		
 	};
 }
 

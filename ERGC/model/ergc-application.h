@@ -70,6 +70,9 @@ namespace ns3
 
         ns3::AquaSimAddress getNodeId();
 
+        double getSqrt3Dist();
+
+        double getSqrt6Dist();
 
         void
         handleBSStartEvent();
@@ -110,12 +113,6 @@ namespace ns3
         void
         NotifyNodesThatIamClusterHead();
 
-        /**
-         * \brief Cancel all pending events.
-         */
-        void
-        CancelClusHeadSelectionSendEvent();
-
         // Event handlers
         /**
          * \brief Start an On period
@@ -146,15 +143,16 @@ namespace ns3
         Ptr<Packet> m_unsentPacket;          //!< Unsent packet cached for future attempt
         bool m_enableSeqTsSizeHeader{false}; //!< Enable or disable the use of SeqTsSizeHeader
         // ERGC Algorithm Variables
-        Ptr<Socket> m_socket;                //!< Associated socket
-        Address m_peer;                      //!< Peer address
-        EventId m_BSSentKEvent;                                                 //!< Event id for BS sent k
-        EventId m_sendClusMsgEvent;          //!< Event id of cluster msg event
+        Ptr<Socket> m_socket;       //!< Associated socket
+        Address m_peer;             //!< Peer address
+        EventId m_BSSentKEvent;     //!< Event id for BS sent k
+        EventId m_sendClusMsgEvent; //!< Event id of cluster msg event
+        EventId m_clusHeadNotifyEvent;
         bool m_receivedK{false};
-        bool m_clusterHead{true};                                               //!< before cluster head selection every node is a cluster head
-        ClusterHeadSelectionHeader m_clusterHeadInfo;                           //!< Cluster head information pointer
-        std::map<AquaSimAddress, ClusterHeadSelectionHeader> m_clusterList;     // key -> address of the child node of this cluster header
-        std::map<AquaSimAddress, Ptr<Socket> > m_clusterSocketList;
+        bool m_clusterHead{true};                                           //!< before cluster head selection every node is a cluster head
+        ClusterHeadSelectionHeader m_clusterHeadInfo;                       //!< Cluster head information pointer
+        std::map<AquaSimAddress, ClusterHeadSelectionHeader> m_clusterList; // key -> address of the child node of this cluster header
+        std::map<AquaSimAddress, Ptr<Socket>> m_clusterSocketList;
         std::map<AquaSimAddress, ClusterNeighborHeader> m_neighborClusterTable; // key -> address of the neighbor cluster header
         Time m_maxClusterHeadSelectionTime{"10s"};
         /// Traced Callback: transmitted packets.

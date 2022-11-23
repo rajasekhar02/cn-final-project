@@ -1,9 +1,12 @@
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
-
+#include "ns3/log.h"
 #include "ns3/ergc.h"
 
 namespace ns3
 {
+  NS_LOG_COMPONENT_DEFINE("ERGC");
+
+  // NS_OBJECT_ENSURE_REGISTERED(ERGC);
 
   /* ... */
   double EnergyModel::getEnergyUsedForTransmission(int noOfBitsInAPacket, ns3::Vector sourcePosition, ns3::Vector destinationPosition)
@@ -54,7 +57,7 @@ namespace ns3
                             .AddConstructor<ERGCNodeProps>();
     return tid;
   }
-  double 
+  double
   ERGCNodeProps::distanceBTW(ns3::Vector node1Position, ns3::Vector node2Position)
   {
     double distX = (node1Position.x - node2Position.x) * (node1Position.x - node2Position.x);
@@ -63,13 +66,13 @@ namespace ns3
     return std::sqrt(distX + distY + distZ);
   }
 
-  double 
+  double
   ERGCNodeProps::distanceBTWSCToBS(ns3::Vector scIndex, ns3::Vector BSPosition, u_int32_t k_mtrs)
   {
     return k_mtrs * ERGCNodeProps::distanceBTW(scIndex, BSPosition);
   }
 
-  ns3::Vector 
+  ns3::Vector
   ERGCNodeProps::SCIndex(ns3::Vector nodePosition, int edgeLengthK)
   {
     int xValue = std::floor(nodePosition.x);
@@ -81,7 +84,7 @@ namespace ns3
     return Vector(m, n, h);
   }
 
-  ns3::Vector 
+  ns3::Vector
   ERGCNodeProps::SCIndex2(ns3::Vector nodePosition, int edgeLengthK)
   {
     int xValue = std::ceil(nodePosition.x);
@@ -93,13 +96,24 @@ namespace ns3
     return Vector(m, n, h);
   }
 
-  ns3::Time 
+  ns3::Time
   ERGCNodeProps::GetWaitTimeToBroadCastClusterHeadMsg(double NodeResidualEnergy, Vector currentNodePosition, Time Tmax)
   {
     double distBtwSCAndBS = ERGCNodeProps::distanceBTWSCToBS(m_scIndex, m_BSPosition, m_k_mtrs);
-    double distBtwNodeAndBS = ERGCNodeProps::distanceBTW(currentNodePosition,m_BSPosition);
+    double distBtwNodeAndBS = ERGCNodeProps::distanceBTW(currentNodePosition, m_BSPosition);
     double energyRatio = NodeResidualEnergy / m_netDeviceInitialEnergy;
-    double distanceRatio = (distBtwSCAndBS - distBtwNodeAndBS)/distBtwSCAndBS;
-    return Time(Tmax*energyRatio*distanceRatio);
+    double distanceRatio = distBtwSCAndBS - distBtwNodeAndBS / distBtwSCAndBS;
+    NS_LOG_DEBUG("Energy Ratio: " << energyRatio << " distanceRatio: " << distanceRatio);
+    return Time(Tmax * energyRatio * distanceRatio);
+  }
+
+  double ERGCNodeProps::GetSqrt3Dist()
+  {
+    return m_k_mtrs * sqrt(3);
+  }
+
+  double ERGCNodeProps::GetSqrt6Dist()
+  {
+    return m_k_mtrs * sqrt(6);
   }
 }
