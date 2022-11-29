@@ -269,8 +269,6 @@ namespace ns3
 
             CubeLengthHeader cubeLengthTs;
             ClusterHeadSelectionHeader clusterHSH;
-            // std::cout<<packet->PeekHeader(clusterHSH)<<std::endl;
-            //
             if (packet->PeekHeader(cubeLengthTs) && !m_receivedK)
             {
                 HandleCubeLengthAssignPacket(packet);
@@ -282,21 +280,6 @@ namespace ns3
             if (packet->PeekHeader(clusterHSH))
             {
                 HandleClusterHeadSelection(packet);
-                // if (!m_clusterHead && !m_clusHeadNotifyEvent.IsExpired())
-                // {
-                //
-                //     return;
-                // }
-                // if (isClusterHead)
-                // {
-                //     StartQueryingClusterNeighborPhase();
-                // }
-                // StartSendingData();
-                // if (!m_clusHeadNotifyEvent.IsExpired())
-                // {
-                //     Simulator::Cancel(m_clusHeadNotifyEvent);
-                // }
-                // m_clusHeadNotifyEvent = Simulator::Schedule(m_maxClusterHeadSelectionTime, &ERGCApplication::NotifyNodesThatIamClusterHead, this);
                 return;
             }
             ClusterNeighborHeader clusterNH;
@@ -335,16 +318,9 @@ namespace ns3
                                      << " Cj " << Cj
                                      << " " << m_sendClusMsgEvent.GetTs()
                                      << " " << Simulator::Now());
-
-            // if (m_sendClusMsgEvent.IsRunning())
-            // Simulator::Now().Compare(m_broadcastClusHeadStartTime)
             if (m_sendClusMsgEvent.IsRunning())
             {
-
                 NS_LOG_DEBUG("Listening for cluster initialization msg");
-                // double Ci = getResidualEnergy() / getDistBtwNodeAndBS();
-                // double Cj = clusHeadSelectionH.GetResidualEnrg() / clusHeadSelectionH.GetDistBtwNodeAndBS();
-                // NS_LOG_DEBUG("Node Id: " << getNodeId() << " Ci " << Ci << " Node j Id: " << clusHeadSelectionH.GetNodeId() << " Cj " << Cj);
                 if (Ci < Cj)
                 {
                     m_clusterHead = false;
@@ -353,25 +329,14 @@ namespace ns3
                 }
                 else
                 {
-                    //             // Node i can be the cluster head for node j
-                    //             // Node i has property clusterlist and sizeOfClusterList
-                    //             // Node i updates it cluster list
                     m_clusterList[clusHeadSelectionH.GetNodeId()] = clusHeadSelectionH;
-                    // sizeOfClusterList++;
-                    NS_LOG_DEBUG("" << m_clusterList.size());
+                    NS_LOG_DEBUG("Cluster Size: " << m_clusterList.size());
                 }
                 return;
             }
-            // }
-            // if (clusHeadSelectionH.GetIsClusterHeadMsg())
-            // {
-            // how will i find the what are the nodes that are cluster heads
-            // where will i store the information
-            // after the Tmax out every cluster head will send msg to its children indicating that it is cluster head
             m_clusterHead = false;
             m_clusterHeadInfo = clusHeadSelectionH;
             NS_LOG_DEBUG("Cluster Head Node " << clusHeadSelectionH.GetNodeId() << " Cluster Head SC Index " << clusHeadSelectionH.GetSCIndex());
-            // }
         }
     }
 
@@ -379,7 +344,6 @@ namespace ns3
     {
         Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
         ergcNodeProps->m_scIndex = ERGCNodeProps::SCIndex(getNodePosition(), getK());
-        // NS_LOG_INFO("Node " << GetNode()->GetId() << " SC Index: " << (ergcNodeProps->m_scIndex));
         ScheduleClusterHeadSelectionPhase();
     }
 
@@ -393,11 +357,6 @@ namespace ns3
             residualEnergy,
             nodePosition,
             m_maxClusterHeadSelectionTime);
-        // if (m_broadcastClusHeadTimeOut.GetDouble() < 0)
-        // {
-        //     m_clusterHead = false;
-        //     return;
-        // }
         NS_LOG_INFO("Timeout time: " << (m_broadcastClusHeadTimeOut).GetDouble());
         Ptr<AquaSimNetDevice> device = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
         device->GetPhy()->SetTransRange(getSqrt3Dist());
@@ -422,35 +381,8 @@ namespace ns3
         m_lastStartTime = Simulator::Now();
     }
 
-    void ERGCApplication::SendClusterHeadSelectionMsg()
-    {
-    }
-
-    void ERGCApplication::HandleAddClusterNeighbor(Ptr<Packet> packet) {}
-
-    void StartQueryingClusterNeighborPhase()
-    {
-        NS_LOG_DEBUG("Starting Cluster Neighbor Phase");
-    }
-
-    void ERGCApplication::StopApplication() // Called at time specified by Stop
-    {
-        NS_LOG_FUNCTION(this);
-
-        // CancelEvents();
-        if (m_socket != 0)
-        {
-            m_socket->Close();
-        }
-        else
-        {
-            NS_LOG_WARN("ERGCApplication found null socket to close in StopApplication");
-        }
-    }
-
     void ERGCApplication::NotifyNodesThatIamClusterHead()
     {
-        // NS_LOG_INFO("value: " << m_clusterHead);
         if (!m_clusterHead)
         {
             return;
@@ -491,7 +423,30 @@ namespace ns3
             socket->Send(packet);
         }
     }
-    // Event handlers
+
+    void ERGCApplication::HandleAddClusterNeighbor(Ptr<Packet> packet) {}
+
+    void StartQueryingClusterNeighborPhase()
+    {
+        NS_LOG_DEBUG("Starting Cluster Neighbor Phase");
+    }
+
+    void ERGCApplication::StopApplication() // Called at time specified by Stop
+    {
+        NS_LOG_FUNCTION(this);
+
+        // CancelEvents();
+        if (m_socket != 0)
+        {
+            m_socket->Close();
+        }
+        else
+        {
+            NS_LOG_WARN("ERGCApplication found null socket to close in StopApplication");
+        }
+    }
+
+      // Event handlers
 
     // Private helpers
     void ERGCApplication::ConnectionSucceeded(Ptr<Socket> socket)
