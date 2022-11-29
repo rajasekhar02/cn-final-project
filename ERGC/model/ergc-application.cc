@@ -403,8 +403,8 @@ namespace ns3
         device->GetPhy()->SetTransRange(getSqrt3Dist());
         NS_LOG_DEBUG("Node Id: " << getNodeId() << " SC Index " << getSCIndex() << " At: " << Simulator::Now() << " Timeout Time: " << m_broadcastClusHeadTimeOut);
         m_broadcastClusHeadStartTime = Simulator::Now();
-        m_sendClusMsgEvent = Simulator::Schedule(m_broadcastClusHeadStartTime + m_broadcastClusHeadTimeOut, &ERGCApplication::clusterHeadMessageTimeout, this);
-        // Simulator::Schedule(m_maxClusterHeadSelectionTime + m_broadcastClusHeadTimeOut, &ERGCApplication::NotifyNodesThatIamClusterHead, this);
+        m_sendClusMsgEvent = Simulator::Schedule(m_broadcastClusHeadTimeOut, &ERGCApplication::clusterHeadMessageTimeout, this);
+        Simulator::Schedule(m_maxClusterHeadSelectionTime + m_broadcastClusHeadTimeOut, &ERGCApplication::NotifyNodesThatIamClusterHead, this);
     }
 
     void ERGCApplication::clusterHeadMessageTimeout()
