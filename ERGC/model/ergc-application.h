@@ -154,7 +154,7 @@ namespace ns3
         std::map<AquaSimAddress, ClusterHeadSelectionHeader> m_clusterList; // key -> address of the child node of this cluster header
         std::map<AquaSimAddress, Ptr<Socket>> m_clusterSocketList;
         std::map<AquaSimAddress, ClusterNeighborHeader> m_neighborClusterTable; // key -> address of the neighbor cluster header
-        Time m_maxClusterHeadSelectionTime{"10s"};
+        Time m_maxClusterHeadSelectionTime{"25s"};
         Time m_broadcastClusHeadTimeOut;
         Time m_broadcastClusHeadStartTime;
         /// Traced Callback: transmitted packets.

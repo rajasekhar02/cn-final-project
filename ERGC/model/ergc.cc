@@ -103,7 +103,7 @@ namespace ns3
     double distBtwNodeAndBS = ERGCNodeProps::distanceBTW(currentNodePosition, m_BSPosition);
     double energyRatio = NodeResidualEnergy / m_netDeviceInitialEnergy;
     double distanceRatio = (distBtwSCAndBS - distBtwNodeAndBS) / distBtwSCAndBS;
-    NS_LOG_DEBUG("Energy Ratio: " << energyRatio << " distanceRatio: " << distanceRatio);
+    // NS_LOG_DEBUG("Energy Ratio: " << energyRatio << " distanceRatio: " << distanceRatio);
     return Time(Tmax * energyRatio * distanceRatio);
   }
 
