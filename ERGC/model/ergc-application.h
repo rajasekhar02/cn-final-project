@@ -107,12 +107,6 @@ namespace ns3
         void
         HandleAddClusterNeighbor(Ptr<Packet> packet);
 
-        void
-        SendClusterHeadSelectionMsg();
-
-        void
-        NotifyNodesThatIamClusterHead();
-
         // Event handlers
         /**
          * \brief Start an On period
@@ -149,7 +143,8 @@ namespace ns3
         EventId m_sendClusMsgEvent; //!< Event id of cluster msg event
         EventId m_clusHeadNotifyEvent;
         bool m_receivedK{false};
-        bool m_clusterHead{true};                                           //!< before cluster head selection every node is a cluster head
+        bool m_clusterHead{true}; //!< before cluster head selection every node is a cluster head
+        bool m_completedClusHeadSelection{false};
         ClusterHeadSelectionHeader m_clusterHeadInfo;                       //!< Cluster head information pointer
         std::map<AquaSimAddress, ClusterHeadSelectionHeader> m_clusterList; // key -> address of the child node of this cluster header
         std::map<AquaSimAddress, Ptr<Socket>> m_clusterSocketList;
