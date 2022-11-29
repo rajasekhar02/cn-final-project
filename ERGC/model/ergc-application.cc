@@ -446,7 +446,7 @@ namespace ns3
         }
     }
 
-      // Event handlers
+    // Event handlers
 
     // Private helpers
     void ERGCApplication::ConnectionSucceeded(Ptr<Socket> socket)
