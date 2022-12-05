@@ -19,3 +19,5 @@ https://www.youtube.com/watch?v=KI9djv3rah4
 [Cube Visualization](http://bl.ocks.org/phil-pedruco/9852362)
 
 [NS3 Log to file](https://groups.google.com/g/ns-3-users/c/SDBdv7vWjWI?pli=1)
+
+[Changing the position during the simulation](https://stackoverflow.com/questions/33949888/ns-3-how-to-change-node-position-during-simulation)
