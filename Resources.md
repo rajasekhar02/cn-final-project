@@ -17,3 +17,5 @@ https://www.youtube.com/watch?v=KI9djv3rah4
 [Node vs Netdevice](www.nsnam.org/docs/models/html/network-overview.html)
 
 [Cube Visualization](http://bl.ocks.org/phil-pedruco/9852362)
+
+[NS3 Log to file](https://groups.google.com/g/ns-3-users/c/SDBdv7vWjWI?pli=1)
