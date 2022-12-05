@@ -23,6 +23,7 @@
 
 #include "ns3/aqua-sim-routing.h"
 #include "ns3/aqua-sim-address.h"
+#include "ergc-headers.h"
 #include <map>
 
 namespace ns3
@@ -39,6 +40,8 @@ namespace ns3
   class ERGCRouting : public AquaSimRouting
   {
   public:
+    bool m_is_cluster_head{false};
+    AquaSimAddress m_cluster_head_address;
     ERGCRouting();
     ERGCRouting(char *routeFile);
     virtual ~ERGCRouting();
@@ -53,7 +56,7 @@ namespace ns3
     bool m_hasSetRouteFile;
     bool m_hasSetNode;
     char m_routeFile[100];
-
+    std::map<AquaSimAddress, ClusterNeighborHeader> m_neighborClusterTable;
     void ReadRouteTable(char *filename);
     AquaSimAddress FindNextHop(const Ptr<Packet> p);
 

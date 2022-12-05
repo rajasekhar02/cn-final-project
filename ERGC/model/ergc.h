@@ -4,6 +4,7 @@
 #include "ns3/ptr.h"
 #include "ns3/nstime.h"
 #include "ns3/object.h"
+#include "ns3/aqua-sim-address.h"
 #include <cmath>
 
 #ifndef ERGC_H
@@ -82,6 +83,8 @@ namespace ns3
 		std::string m_nodeType;
 		ns3::Vector m_scIndex;
 		ns3::Vector m_BSPosition;
+		int velocity;
+		ns3::AquaSimAddress m_BSAddress;
 		double m_netDeviceInitialEnergy;
 
 		ERGCNodeProps();

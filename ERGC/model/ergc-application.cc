@@ -23,6 +23,7 @@
 #include "ergc.h"
 #include "ergc-headers.h"
 #include "ergc.h"
+#include "ergc-routing.h"
 
 namespace ns3
 {
@@ -337,7 +338,7 @@ namespace ns3
             }
             m_clusterHead = false;
             m_clusterHeadInfo = clusHeadSelectionH;
-            NS_LOG_DEBUG("Cluster Head Node " << clusHeadSelectionH.GetNodeId() << " Cluster Head SC Index " << clusHeadSelectionH.GetSCIndex());
+            NS_LOG_DEBUG("Cluster Head Node " << m_clusterHeadInfo.GetNodeId() << " Cluster Head SC Index " << clusHeadSelectionH.GetSCIndex());
         }
     }
 
@@ -351,14 +352,20 @@ namespace ns3
         packet->RemoveHeader(clusNeighborH);
         double dist = ERGCNodeProps::distanceBTW(getNodePosition(), clusNeighborH.GetNodePosition());
         NS_LOG_DEBUG("Received Message from Cluster Neighbor: " << getSCIndex()
+                                                                << " "
+                                                                << getDistBtwNodeAndBS()
                                                                 << "---" << clusNeighborH.GetSCIndex()
+                                                                <<" "<<(clusNeighborH.GetDistBtwNodeAndBS())
                                                                 << " " << (dist)
                                                                 << " " << getSqrt6Dist());
+        if(getSCIndex() < clusNeighborH.GetSCIndex()) return;
         m_neighborClusterTable[clusNeighborH.GetClusterHeadId()] = clusNeighborH;
+        NS_LOG_DEBUG(m_neighborClusterTable.size());
     }
 
     void ERGCApplication::StartClusteringPhase()
     {
+        m_clusterHead = true;
         Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
         ergcNodeProps->m_scIndex = ERGCNodeProps::SCIndex(getNodePosition(), getK());
         ScheduleClusterHeadSelectionPhase();
@@ -381,6 +388,7 @@ namespace ns3
         m_broadcastClusHeadStartTime = Simulator::Now();
         m_sendClusMsgEvent = Simulator::Schedule(m_broadcastClusHeadTimeOut, &ERGCApplication::clusterHeadMessageTimeout, this);
         Simulator::Schedule(m_maxClusterHeadSelectionTime + m_broadcastClusHeadTimeOut, &ERGCApplication::StartQueryingClusterNeighborPhase, this);
+
     }
 
     void ERGCApplication::clusterHeadMessageTimeout()
@@ -401,13 +409,21 @@ namespace ns3
     void ERGCApplication::StartQueryingClusterNeighborPhase()
     {
         m_completedClusHeadSelection = true;
+        Ptr<AquaSimNetDevice> device = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
+        Ptr<ERGCRouting> ergcRouting = device->GetRouting()->GetObject<ERGCRouting>();
+         ergcRouting->m_is_cluster_head= m_clusterHead;
         if (!m_clusterHead)
         {
+            ergcRouting->m_cluster_head_address = m_clusterHeadInfo.GetNodeId();
             return;
         }
-        NS_LOG_DEBUG(getNodeId() << " " << m_clusterList.size());
-        NS_LOG_DEBUG("Starting Cluster Neighbor Phase");
-        Ptr<AquaSimNetDevice> device = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
+
+        // NS_LOG_DEBUG(getSCIndex() << " " << m_clusterList.size());
+        NS_LOG_DEBUG("Sending Message from Cluster Neighbor: " << getSCIndex()
+                                                                << " "
+                                                                << getDistBtwNodeAndBS()
+                                                            );
+        NS_LOG_DEBUG("Starting Cluster Neighbor Phase");       
         device->GetPhy()->SetTransRange(getSqrt6Dist());
         ClusterNeighborHeader clusNeighborH;
         clusNeighborH.SetClusterHeadId(getNodeId());
@@ -415,20 +431,15 @@ namespace ns3
         clusNeighborH.SetSCIndex(getSCIndex());
         clusNeighborH.SetDistBtwNodeAndBS(getDistBtwNodeAndBS());
         clusNeighborH.SetResidualEnrg(getResidualEnergy());
-        // clusHeadSelectionH.SetIsClusterHeadMsg(1);
         Ptr<Packet> packet = Create<Packet>(clusNeighborH.GetSerializedSize());
         packet->AddHeader(clusNeighborH);
         m_socket->Send(packet);
         m_lastStartTime = Simulator::Now();
-        // std::map<AquaSimAddress, ClusterHeadSelectionHeader>::iterator it;
-        // // NS_LOG_INFO("Cluster Nodes: " << m_clusterList.size());
     }
 
     void ERGCApplication::StopApplication() // Called at time specified by Stop
     {
         NS_LOG_FUNCTION(this);
-
-        // CancelEvents();
         if (m_socket != 0)
         {
             m_socket->Close();

@@ -93,7 +93,7 @@ namespace ns3
 		// struct hdr_ip* ih = HDR_IP(p);
 		p->PeekHeader(ash);
 
-		NS_LOG_DEBUG("Me(" << AquaSimAddress::ConvertFrom(m_device->GetAddress()).GetAsInt() << "): Received packet from MAC : " << ash.GetSize() << " bytes ; " << ash.GetTxTime().GetSeconds() << " sec. ; Dest: " << ash.GetDAddr().GetAsInt() << " ; Src: " << ash.GetSAddr().GetAsInt() << " ; Next H.: " << ash.GetNextHop().GetAsInt());
+		// NS_LOG_DEBUG("Me(" << AquaSimAddress::ConvertFrom(m_device->GetAddress()).GetAsInt() << "): Received packet from MAC : " << ash.GetSize() << " bytes ; " << ash.GetTxTime().GetSeconds() << " sec. ; Dest: " << ash.GetDAddr().GetAsInt() << " ; Src: " << ash.GetSAddr().GetAsInt() << " ; Next H.: " << ash.GetNextHop().GetAsInt());
 		if (IsDeadLoop(p))
 		{
 			NS_LOG_INFO("Dropping packet " << p << " due to route loop");
@@ -160,6 +160,20 @@ namespace ns3
 	{
 		AquaSimHeader ash;
 		p->PeekHeader(ash);
+		/*
+			A normal node knows only the cluster head node & BaseStation
+			A cluster head node knows the cluster nodes & cluster neighbor nodes & BaseStation
+		*/
+		NS_LOG_DEBUG("Is cluster head"<<m_is_cluster_head);
+		if(!m_is_cluster_head){
+			NS_LOG_DEBUG("cluster head address"<<m_cluster_head_address);
+			// return m_cluster_head_address;
+		}	
+		if(ash.GetDAddr() == AquaSimAddress::GetBroadcast()){
+			return AquaSimAddress::GetBroadcast();
+		}
+		
+		
 		std::map<AquaSimAddress, AquaSimAddress>::iterator it = m_rTable.find(ash.GetDAddr());
 		return it == m_rTable.end() ? AquaSimAddress::GetBroadcast() : it->second;
 	}
