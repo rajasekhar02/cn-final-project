@@ -109,19 +109,21 @@ namespace ns3
         void
         HandleAddClusterNeighbor(Ptr<Packet> packet);
 
-        // Event handlers
-        /**
-         * \brief Start an On period
-         */
+        void initDataSocket();
+
         void StartSending();
-        /**
-         * \brief Start an Off period
-         */
+    
         void StopSending();
-        /**
-         * \brief Send a packet
-         */
-        void SendPacket();
+    
+        void SendPacket ();
+
+        void ScheduleNextTx ();
+
+        void ScheduleStartEvent ();
+
+        void ScheduleStopEvent ();
+
+        void CancelEvents ();
 
         Address m_local;                     //!< Local address to bind to
         bool m_connected;                    //!< True if connected
@@ -140,9 +142,12 @@ namespace ns3
         bool m_enableSeqTsSizeHeader{false}; //!< Enable or disable the use of SeqTsSizeHeader
         // ERGC Algorithm Variables
         Ptr<Socket> m_socket;       //!< Associated socket
+        Ptr<Socket> m_clus_socket;  //!< Associated socket for clustering
         Address m_peer;             //!< Peer address
         EventId m_BSSentKEvent;     //!< Event id for BS sent k
         EventId m_sendClusMsgEvent; //!< Event id of cluster msg event
+        EventId m_startStopEvent;
+        EventId m_sendEvent;
         EventId m_clusHeadNotifyEvent;
         bool m_receivedK{false};
         bool m_clusterHead{true}; //!< before cluster head selection every node is a cluster head
