@@ -121,28 +121,28 @@
         zExent = d3.extent(unfiltered, function (d) {return d.z; });
 
     var vpts = {
-        xMax: xExent[1],
-        xCen: (xExent[1] + xExent[0]) / 2,
-        xMin: xExent[0],
-        yMax: yExent[1],
-        yCen: (yExent[1] + yExent[0]) / 2,
-        yMin: yExent[0],
-        zMax: zExent[1],
-        zCen: (zExent[1] + zExent[0]) / 2,
-        zMin: zExent[0]
+        xMax: 5,
+        xCen: 5 / 2,
+        xMin: 0,
+        yMax: 5,
+        yCen: 5 / 2,
+        yMin: 0,
+        zMax: 5,
+        zCen: 5 / 2,
+        zMin: 0
     }
 
     var colour = d3.scale.category20c();
 
     var xScale = d3.scale.linear()
                   .domain(xExent)
-                  .range([-50,50]);
+                  .range([0,50]);
     var yScale = d3.scale.linear()
                   .domain(yExent)
-                  .range([-50,50]);                  
+                  .range([0,50]);                  
     var zScale = d3.scale.linear()
                   .domain(zExent)
-                  .range([-50,50]);
+                  .range([0,50]);
 
     var lineGeo = new THREE.BufferGeometry();
     const linepoints = [];
