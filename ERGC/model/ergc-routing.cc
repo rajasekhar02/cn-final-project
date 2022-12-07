@@ -1,11 +1,12 @@
+#include "ergc-application.h"
 #include "ergc-routing.h"
-#include "ergc.h"
 #include "ergc-headers.h"
-#include "ns3/packet-socket.h"
+#include "ergc.h"
 #include "ns3/aqua-sim-header.h"
+#include "ns3/aqua-sim-address.h"
+#include "ns3/packet-socket.h"
 #include "ns3/string.h"
 #include "ns3/log.h"
-
 #include <cstdio>
 
 namespace ns3
@@ -151,6 +152,23 @@ namespace ns3
 		return false;
 	}
 
+	ClusterNeighborHeader ERGCRouting::getBestClusterNeighbor(double distanceBtwDeviceAndBS,double deviceResidualEnergy, Vector nodePosition, const Ptr<Packet> p){
+		double minVertex = std::numeric_limits<double>::max();
+		ClusterNeighborHeader minVertextHeader = m_neighbor_cluster_table.begin()->second;
+		for(auto eachNeighbor:m_neighbor_cluster_table){
+			ClusterNeighborHeader clusterNeighbor = eachNeighbor.second;
+			double distanceRatio = clusterNeighbor.GetDistBtwNodeAndBS()/distanceBtwDeviceAndBS;
+			double energyRatio = clusterNeighbor.GetResidualEnrg() / deviceResidualEnergy;
+			double delayRatio = DelayModel::totalDelay(nodePosition,clusterNeighbor.GetNodePosition(),p).ToDouble(ns3::Time::Unit::S)/NodeSceneParams::DELAY_THRESHOLD_SECS;
+			double vertexRatio = distanceRatio + (NodeSceneParams::LAMBDA*(1-energyRatio)) + (NodeSceneParams::MU*delayRatio);
+			if(vertexRatio < minVertex){
+				minVertex = vertexRatio;
+				minVertextHeader = clusterNeighbor;
+			}
+		}
+	 	return minVertextHeader;
+	}
+
 	/*
 	 * @param p   a packet
 	 * @return    the next hop to route packet p
@@ -164,18 +182,23 @@ namespace ns3
 			A normal node knows only the cluster head node & BaseStation
 			A cluster head node knows the cluster nodes & cluster neighbor nodes & BaseStation
 		*/
-		NS_LOG_DEBUG("Is cluster head"<<m_is_cluster_head);
-		if(!m_is_cluster_head){
-			NS_LOG_DEBUG("cluster head address"<<m_cluster_head_address);
-			// return m_cluster_head_address;
-		}	
 		if(ash.GetDAddr() == AquaSimAddress::GetBroadcast()){
 			return AquaSimAddress::GetBroadcast();
 		}
-		
-		
-		std::map<AquaSimAddress, AquaSimAddress>::iterator it = m_rTable.find(ash.GetDAddr());
-		return it == m_rTable.end() ? AquaSimAddress::GetBroadcast() : it->second;
+		Ptr<ERGCApplication> application = GetNetDevice()->GetNode()->GetApplication(0)->GetObject<ERGCApplication>();
+		double distanceBtwNodeAndBS = application->getDistBtwNodeAndBS();
+		double residualEnergy =  application->getResidualEnergy();
+		AquaSimAddress baseStationAddress = application->getBaseStationAddress();
+		uint32_t m_k_mtrs = application->getResidualEnergy();
+		Vector nodePosition = application->getNodePosition();
+	 	// std::map<AquaSimAddress, ClusterNeighborHeader>::iterator it2 = m_neighbor_cluster_table.begin();	
+		if(ash.GetDAddr() == baseStationAddress && distanceBtwNodeAndBS < 2*m_k_mtrs){
+			return baseStationAddress;
+		}
+		ClusterNeighborHeader bestClusterNeighbor = getBestClusterNeighbor(distanceBtwNodeAndBS, residualEnergy, nodePosition, p);
+		// std::map<AquaSimAddress, AquaSimAddress>::iterator it = m_rTable.find(ash.GetDAddr());
+		// return it == m_rTable.end() ? AquaSimAddress::GetBroadcast() : it->second;
+		return bestClusterNeighbor.GetClusterHeadId();
 	}
 
 } // namespace ns3

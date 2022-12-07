@@ -42,7 +42,7 @@ namespace ns3
   public:
     bool m_is_cluster_head{false};
     AquaSimAddress m_cluster_head_address;
-    std::map<AquaSimAddress, ClusterNeighborHeader> m_neighborClusterTable;
+    std::map<AquaSimAddress, ClusterNeighborHeader> m_neighbor_cluster_table;
     ERGCRouting();
     ERGCRouting(char *routeFile);
     virtual ~ERGCRouting();
@@ -52,7 +52,7 @@ namespace ns3
     virtual bool Recv(Ptr<Packet> packet, const Address &dest, uint16_t protocolNumber);
 
     void SetRouteTable(char *routeFile);
-
+    ClusterNeighborHeader getBestClusterNeighbor(double distanceBtwDeviceAndBS,double deviceResidualEnergy, Vector nodePosition, const Ptr<Packet> p);
   protected:
     bool m_hasSetRouteFile;
     bool m_hasSetNode;

@@ -177,6 +177,12 @@ namespace ns3
         return ERGCNodeProps::distanceBTW(nodePosition, getBSPosition());
     }
 
+    AquaSimAddress ERGCApplication::getBaseStationAddress()
+    {
+        Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
+        return AquaSimAddress::ConvertFrom(GetNode()->GetDevice(0)->GetAddress());
+    }
+
     AquaSimAddress ERGCApplication::getNodeId()
     {
         return AquaSimAddress::ConvertFrom(GetNode()->GetDevice(0)->GetAddress());
@@ -362,7 +368,7 @@ namespace ns3
         m_neighborClusterTable[clusNeighborH.GetClusterHeadId()] = clusNeighborH;
         Ptr<AquaSimNetDevice> device = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
         Ptr<ERGCRouting> ergcRouting = device->GetRouting()->GetObject<ERGCRouting>();
-        ergcRouting->m_neighborClusterTable[clusNeighborH.GetClusterHeadId()] = clusNeighborH;
+        ergcRouting->m_neighbor_cluster_table[clusNeighborH.GetClusterHeadId()] = clusNeighborH;
         NS_LOG_DEBUG(m_neighborClusterTable.size());
     }
 
@@ -391,7 +397,6 @@ namespace ns3
         m_broadcastClusHeadStartTime = Simulator::Now();
         m_sendClusMsgEvent = Simulator::Schedule(m_broadcastClusHeadTimeOut, &ERGCApplication::clusterHeadMessageTimeout, this);
         Simulator::Schedule(m_maxClusterHeadSelectionTime + m_broadcastClusHeadTimeOut, &ERGCApplication::StartQueryingClusterNeighborPhase, this);
-
     }
 
     void ERGCApplication::clusterHeadMessageTimeout()

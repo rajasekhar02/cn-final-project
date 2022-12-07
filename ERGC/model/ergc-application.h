@@ -45,6 +45,14 @@ namespace ns3
          */
         Ptr<Socket> GetSocket(void) const;
 
+        double getResidualEnergy();
+
+        double getDistBtwNodeAndBS();
+
+        ns3::AquaSimAddress getBaseStationAddress();
+
+        ns3::Vector getNodePosition();
+
     protected:
         virtual void DoDispose(void);
 
@@ -61,12 +69,6 @@ namespace ns3
         ns3::Vector getBSPosition();
 
         ns3::Vector getSCIndex();
-
-        ns3::Vector getNodePosition();
-
-        double getResidualEnergy();
-
-        double getDistBtwNodeAndBS();
 
         ns3::AquaSimAddress getNodeId();
 

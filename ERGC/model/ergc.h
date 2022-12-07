@@ -23,6 +23,8 @@ namespace ns3
 		static const int DISTANCE_THRESHOLD_MTRS = 87;
 		static const long int ENRGY_AGGR_DATA_JOULES_PER_BIT_PER_PKT = 5 * 1e-9;
 		static const int SOUND_VELOCITY_MTRS_PER_SEC = 1500;
+		static const int LAMBDA = 1;
+		static const int MU = 1;
 	};
 
 	class PacketParams
