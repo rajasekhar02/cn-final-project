@@ -1,7 +1,7 @@
 Waf: Entering directory `/home/raja/Downloads/ns-allinone-3.35/ns-3.35/build'
 Waf: Leaving directory `/home/raja/Downloads/ns-allinone-3.35/ns-3.35/build'
 Build commands will be stored in build/compile_commands.json
-'build' finished successfully (0.263s)
+'build' finished successfully (0.260s)
 Initializing BaseStation and Sink Mobility Model
 +2.000000000s 0 ERGCRouting:FindNextHop(): [DEBUG] Is cluster head0
 +2.000000000s 0 ERGCRouting:FindNextHop(): [DEBUG] cluster head address00
