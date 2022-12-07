@@ -360,6 +360,9 @@ namespace ns3
                                                                 << " " << getSqrt6Dist());
         if(getSCIndex() < clusNeighborH.GetSCIndex()) return;
         m_neighborClusterTable[clusNeighborH.GetClusterHeadId()] = clusNeighborH;
+        Ptr<AquaSimNetDevice> device = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
+        Ptr<ERGCRouting> ergcRouting = device->GetRouting()->GetObject<ERGCRouting>();
+        ergcRouting->m_neighborClusterTable[clusNeighborH.GetClusterHeadId()] = clusNeighborH;
         NS_LOG_DEBUG(m_neighborClusterTable.size());
     }
 

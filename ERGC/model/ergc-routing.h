@@ -42,6 +42,7 @@ namespace ns3
   public:
     bool m_is_cluster_head{false};
     AquaSimAddress m_cluster_head_address;
+    std::map<AquaSimAddress, ClusterNeighborHeader> m_neighborClusterTable;
     ERGCRouting();
     ERGCRouting(char *routeFile);
     virtual ~ERGCRouting();
@@ -56,7 +57,7 @@ namespace ns3
     bool m_hasSetRouteFile;
     bool m_hasSetNode;
     char m_routeFile[100];
-    std::map<AquaSimAddress, ClusterNeighborHeader> m_neighborClusterTable;
+    
     void ReadRouteTable(char *filename);
     AquaSimAddress FindNextHop(const Ptr<Packet> p);
 
