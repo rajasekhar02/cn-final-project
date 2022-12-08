@@ -113,10 +113,7 @@ namespace ns3
 			p->RemoveHeader(ash);
 			SeqTsSizeHeader sqHeader;
 			p->PeekHeader(sqHeader);
-			std::cout << "Seq no: " << sqHeader.GetSeq() << std::endl;
-			std::cout << "Received from: " << ash.GetSAddr() << " next-hop-node: " << ash.GetNextHop() << " " << AquaSimAddress::ConvertFrom(m_device->GetAddress()) << " " << ash.GetDAddr() << std::endl;
-			NS_LOG_INFO("Dropping packet " << p << " due to duplicate");
-			// drop(p, DROP_MAC_DUPLICATE);
+			NS_LOG_DEBUG("Dropping packet " << p << " due to duplicate");
 			p = 0;
 			return false;
 		}
@@ -127,11 +124,6 @@ namespace ns3
 		ash.SetNumForwards(numForwards);
 		p->AddHeader(ash);
 		Ptr<ERGCApplication> application = GetNetDevice()->GetNode()->GetApplication(0)->GetObject<ERGCApplication>();
-		// std::cout << "Received from" << ash.GetSAddr() << std::endl;
-		// std::cout << "Received from" << ash.GetSAddr()
-		// << "next-hop-node: " << ash.GetNextHop() << " "
-		// << AquaSimAddress::ConvertFrom(m_device->GetAddress())
-		// << " "<<ash.GetDAddr()<< std::endl;
 		if (AmIDst(p) || (ash.GetDAddr() == AquaSimAddress::GetBroadcast() && ash.GetDirection() == AquaSimHeader::UP))
 		{
 			NS_LOG_INFO("I am destination. Sending up.");
@@ -140,9 +132,7 @@ namespace ns3
 			p->RemoveHeader(asHeader);
 			AquaSimAddress from = asHeader.GetSAddr();
 			AquaSimAddress to = asHeader.GetDAddr();
-			// std::cout << (from == m_device->GetAddress()) << (to == AquaSimAddress::GetBroadcast()) << std::endl;
-			// // // SendUp(p);
-			std::cout << from << " " << to << std::endl;
+			NS_LOG_INFO("received message: " << from);
 			Ptr<AquaSimNetDevice> aqd = GetNetDevice();
 			Ptr<ERGCApplication> application = GetNetDevice()->GetNode()->GetApplication(0)->GetObject<ERGCApplication>();
 			std::string nodeType = application->GetNode()->GetObject<ERGCNodeProps>()->m_nodeType;
@@ -158,7 +148,7 @@ namespace ns3
 
 		// find the next hop and forward
 		AquaSimAddress next_hop = FindNextHop(p);
-		std::cout << "next hop node: " << next_hop << std::endl;
+		NS_LOG_DEBUG("next hop node selected for forwarding: " << next_hop);
 		if (next_hop != AquaSimAddress::GetBroadcast())
 		{
 			SendDown(p, next_hop, Seconds(0.0));
@@ -176,7 +166,7 @@ namespace ns3
 	{
 		double minVertex = std::numeric_limits<double>::max();
 		ClusterNeighborHeader minVertextHeader = m_neighbor_cluster_table.begin()->second;
-		std::cout << m_neighbor_cluster_table.size() << std::endl;
+		NS_LOG_DEBUG("Cluster Neighbor table size: " << m_neighbor_cluster_table.size());
 		for (auto const &eachNeighbor : m_neighbor_cluster_table)
 		{
 			ClusterNeighborHeader clusterNeighbor = eachNeighbor.second;
@@ -216,7 +206,6 @@ namespace ns3
 		AquaSimAddress baseStationAddress = application->getBaseStationAddress();
 		uint32_t m_k_mtrs = application->getK();
 		Vector nodePosition = application->getNodePosition();
-		std::cout << nodePosition << std::endl;
 		Vector clusterPosition = application->getClusterHeadInfo().GetNodePosition();
 		double maxDistanceToBS = std::min(2.0 * m_k_mtrs, m_device->GetPhy()->GetTransRange());
 		if (ash.GetDAddr() == baseStationAddress && distanceBtwNodeAndBS < maxDistanceToBS)

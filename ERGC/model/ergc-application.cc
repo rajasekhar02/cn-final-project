@@ -156,7 +156,6 @@ namespace ns3
   ns3::Vector ERGCApplication::getBSPosition()
   {
     Ptr<ERGCNodeProps> ergcNodeProps = GetNode()->GetObject<ERGCNodeProps>();
-    std::cout << ergcNodeProps->m_BSPosition << std::endl;
     return ergcNodeProps->m_BSPosition;
   }
 
@@ -435,7 +434,7 @@ namespace ns3
     ergcRouting->m_is_cluster_head = m_clusterHead;
     if (!m_clusterHead)
     {
-      std::cout << "Started sending data packets" << std::endl;
+      NS_LOG_DEBUG("Started sending data packets");
       ergcRouting->m_cluster_head_address = m_clusterHeadInfo.GetNodeId();
       device->GetPhy()->SetTransRange(getSqrt3Dist());
       Simulator::Schedule(Time("10s"), &ERGCApplication::initDataSocket, this);
