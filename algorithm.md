@@ -31,4 +31,5 @@ I have implemented the algorithm for static placed nodes
 
 What is the communication channel between the nodes
 
+What is the type of mac protocol used
 
