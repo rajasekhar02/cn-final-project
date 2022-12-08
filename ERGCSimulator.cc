@@ -29,16 +29,18 @@ AquaSimChannelHelper channel;
 AquaSimHelper asHelper;
 PacketSocketAddress socket;
 
-
-template<typename ... Args>
-std::string string_format( const std::string& format, Args ... args )
+template <typename... Args>
+std::string string_format(const std::string &format, Args... args)
 {
-    int size_s = std::snprintf( nullptr, 0, format.c_str(), args ... ) + 1; // Extra space for '\0'
-    if( size_s <= 0 ){ throw std::runtime_error( "Error during formatting." ); }
-    auto size = static_cast<size_t>( size_s );
-    std::unique_ptr<char[]> buf( new char[ size ] );
-    std::snprintf( buf.get(), size, format.c_str(), args ... );
-    return std::string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
+  int size_s = std::snprintf(nullptr, 0, format.c_str(), args...) + 1; // Extra space for '\0'
+  if (size_s <= 0)
+  {
+    throw std::runtime_error("Error during formatting.");
+  }
+  auto size = static_cast<size_t>(size_s);
+  std::unique_ptr<char[]> buf(new char[size]);
+  std::snprintf(buf.get(), size, format.c_str(), args...);
+  return std::string(buf.get(), buf.get() + size - 1); // We don't want the '\0' inside
 }
 
 void initNodes()
@@ -53,7 +55,7 @@ void initNodes()
     Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
     ergcNodeProps->m_nodeType = "UWS";
     ergcNodeProps->m_BSPosition = baseStationCon.Get(0)->GetObject<MobilityModel>()->GetPosition();
-    std::cout<<ergcNodeProps->m_BSPosition<<std::endl;
+    std::cout << ergcNodeProps->m_BSPosition << std::endl;
     Ptr<AquaSimNetDevice> aqnd = asHelper.Create(*i, newDevice);
     ergcNodeProps->m_netDeviceInitialEnergy = newDevice->EnergyModel()->GetInitialEnergy();
     // ergcNodeProps->m_velocity = sceneparams.node_velocity;
@@ -61,8 +63,8 @@ void initNodes()
     (*i)->AggregateObject(ergcNodeProps);
     devices.Add(aqnd);
   }
-  std::string positionRandomVariableStr = string_format("ns3::UniformRandomVariable[Min=1|Max=%d]",sceneparams.big_cube_x_mtrs);
-  std::cout << "Initializing Nodes Mobility Model" <<positionRandomVariableStr<< std::endl;
+  std::string positionRandomVariableStr = string_format("ns3::UniformRandomVariable[Min=1|Max=%d]", sceneparams.big_cube_x_mtrs);
+  std::cout << "Initializing Nodes Mobility Model" << positionRandomVariableStr << std::endl;
   nodeMobility.SetPositionAllocator("ns3::RandomBoxPositionAllocator", "X", StringValue(positionRandomVariableStr),
                                     "Y", StringValue(positionRandomVariableStr), "Z", StringValue(positionRandomVariableStr));
   nodeMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
@@ -84,7 +86,7 @@ void initBaseStation()
   baseStationCon.Create(1);
   socketHelper.Install(baseStationCon);
   Ptr<AquaSimNetDevice> newDevice = CreateObject<AquaSimNetDevice>();
-  position->Add(ns3::Vector(sceneparams.base_station_x,sceneparams.base_station_y, sceneparams.base_station_z));
+  position->Add(ns3::Vector(sceneparams.base_station_x, sceneparams.base_station_y, sceneparams.base_station_z));
   Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
   ergcNodeProps->m_nodeType = "BS";
   ergcNodeProps->m_k_mtrs = sceneparams.k_mtrs;
@@ -112,7 +114,7 @@ int main(int argc, char *argv[])
   asHelper.SetChannel(channel.Create());
   asHelper.SetMac("ns3::AquaSimBroadcastMac");
   asHelper.SetRouting("ns3::ERGCRouting");
-  asHelper.SetEnergyModel("ns3::AquaSimEnergyModel", "InitialEnergy", DoubleValue(2.0));
+  asHelper.SetEnergyModel("ns3::AquaSimEnergyModel", "InitialEnergy", DoubleValue(200.0));
   position = CreateObject<ListPositionAllocator>();
   initBaseStation();
   initBaseMobility();
