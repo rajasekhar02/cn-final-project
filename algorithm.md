@@ -29,4 +29,6 @@ As we are using the random positioning what happens if there is no node in the f
 
 I have implemented the algorithm for static placed nodes
 
+What is the communication channel between the nodes
+
 
