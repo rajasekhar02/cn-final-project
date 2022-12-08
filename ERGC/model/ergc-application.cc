@@ -425,8 +425,10 @@ namespace ns3
     if (!m_clusterHead)
     {
       ergcRouting->m_cluster_head_address = m_clusterHeadInfo.GetNodeId();
+      device->GetPhy()->SetTransRange(getSqrt3Dist());
       Simulator::Schedule(Time("100s"), &ERGCApplication::initDataSocket, this);
       // initDataSocket();
+      // Ptr<AquaSimNetDevice> device = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
       return;
     }
 
@@ -449,6 +451,7 @@ namespace ns3
   }
   void ERGCApplication::initDataSocket()
   {
+
     if (!m_socket)
     {
       m_socket = Socket::CreateSocket(GetNode(), m_tid);

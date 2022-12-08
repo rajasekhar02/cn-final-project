@@ -110,6 +110,8 @@ namespace ns3
 		}
 		else if (!AmINextHop(p))
 		{
+			p->PeekHeader(ash);
+			std::cout << "Received from" << ash.GetSAddr() << " " << ash.GetNextHop() << " " << AquaSimAddress::ConvertFrom(m_device->GetAddress()) << std::endl;
 			NS_LOG_INFO("Dropping packet " << p << " due to duplicate");
 			// drop(p, DROP_MAC_DUPLICATE);
 			p = 0;
@@ -122,7 +124,7 @@ namespace ns3
 		ash.SetNumForwards(numForwards);
 		p->AddHeader(ash);
 		Ptr<ERGCApplication> application = GetNetDevice()->GetNode()->GetApplication(0)->GetObject<ERGCApplication>();
-		std::cout << "Is it a cluster head: " << application->isClusterHead() << std::endl;
+		std::cout << "Received from" << ash.GetSAddr() << std::endl;
 		if (AmIDst(p) || (ash.GetDirection() == AquaSimHeader::UP))
 		{
 			NS_LOG_INFO("I am destination. Sending up.");
@@ -193,7 +195,7 @@ namespace ns3
 			return AquaSimAddress::GetBroadcast();
 		}
 		Ptr<ERGCApplication> application = GetNetDevice()->GetNode()->GetApplication(0)->GetObject<ERGCApplication>();
-		std::cout << "Sending to cluster head" << m_cluster_head_address << std::endl;
+		std::cout << "Sending to cluster head" << m_cluster_head_address << "from: " << ash.GetSAddr() << std::endl;
 		if (!application->isClusterHead())
 		{
 			return m_cluster_head_address;
