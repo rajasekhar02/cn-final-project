@@ -113,8 +113,8 @@ namespace ns3
 			p->RemoveHeader(ash);
 			SeqTsSizeHeader sqHeader;
 			p->PeekHeader(sqHeader);
-			std::cout<<"Seq no: "<<sqHeader.GetSeq()<<std::endl;
-			std::cout << "Received from: " << ash.GetSAddr() << " next-hop-node: " << ash.GetNextHop() << " " << AquaSimAddress::ConvertFrom(m_device->GetAddress()) << " "<<ash.GetDAddr()<< std::endl;
+			std::cout << "Seq no: " << sqHeader.GetSeq() << std::endl;
+			std::cout << "Received from: " << ash.GetSAddr() << " next-hop-node: " << ash.GetNextHop() << " " << AquaSimAddress::ConvertFrom(m_device->GetAddress()) << " " << ash.GetDAddr() << std::endl;
 			NS_LOG_INFO("Dropping packet " << p << " due to duplicate");
 			// drop(p, DROP_MAC_DUPLICATE);
 			p = 0;
@@ -128,9 +128,9 @@ namespace ns3
 		p->AddHeader(ash);
 		Ptr<ERGCApplication> application = GetNetDevice()->GetNode()->GetApplication(0)->GetObject<ERGCApplication>();
 		// std::cout << "Received from" << ash.GetSAddr() << std::endl;
-		// std::cout << "Received from" << ash.GetSAddr() 
-		// << "next-hop-node: " << ash.GetNextHop() << " " 
-		// << AquaSimAddress::ConvertFrom(m_device->GetAddress()) 
+		// std::cout << "Received from" << ash.GetSAddr()
+		// << "next-hop-node: " << ash.GetNextHop() << " "
+		// << AquaSimAddress::ConvertFrom(m_device->GetAddress())
 		// << " "<<ash.GetDAddr()<< std::endl;
 		if (AmIDst(p) || (ash.GetDAddr() == AquaSimAddress::GetBroadcast() && ash.GetDirection() == AquaSimHeader::UP))
 		{
@@ -150,7 +150,7 @@ namespace ns3
 
 		// find the next hop and forward
 		AquaSimAddress next_hop = FindNextHop(p);
-		std::cout<<"next hop node: "<<next_hop<<std::endl;
+		std::cout << "next hop node: " << next_hop << std::endl;
 		if (next_hop != AquaSimAddress::GetBroadcast())
 		{
 			SendDown(p, next_hop, Seconds(0.0));
@@ -208,32 +208,32 @@ namespace ns3
 		AquaSimAddress baseStationAddress = application->getBaseStationAddress();
 		uint32_t m_k_mtrs = application->getK();
 		Vector nodePosition = application->getNodePosition();
-		std::cout<<nodePosition<<std::endl;
+		std::cout << nodePosition << std::endl;
 		Vector clusterPosition = application->getClusterHeadInfo().GetNodePosition();
-		double maxDistanceToBS = std::max(2 * m_k_mtrs,m_device->GetPhy()->GetTransRange());
+		double maxDistanceToBS = std::min(2.0 * m_k_mtrs, m_device->GetPhy()->GetTransRange());
 		if (ash.GetDAddr() == baseStationAddress && distanceBtwNodeAndBS < maxDistanceToBS)
 		{
-			NS_LOG_DEBUG(" Physical Transmission range: "<< m_device->GetPhy()->GetTransRange()
-			<< " Sqrt 3 distance " << application->getSqrt3Dist()
-			<< " Dist btw node to bs "<< distanceBtwNodeAndBS
-			<< " 2 * dist "<<3 * m_k_mtrs);
+			NS_LOG_DEBUG(" Physical Transmission range: " << m_device->GetPhy()->GetTransRange()
+														  << " Sqrt 3 distance " << application->getSqrt3Dist()
+														  << " Dist btw node to bs " << distanceBtwNodeAndBS
+														  << " 2 * dist " << 3 * m_k_mtrs);
 			m_device->GetPhy()->SetTransRange(application->getSqrt6Dist());
 			return baseStationAddress;
 		}
 		if (!application->isClusterHead())
 		{
-			NS_LOG_DEBUG("Sending to cluster head: " << m_cluster_head_address 
-			<< " cluster head distance: " << ERGCNodeProps::distanceBTW(nodePosition, clusterPosition) 
-			<< " Physical Transmission range: "<< m_device->GetPhy()->GetTransRange()
-			<< " Sqrt 3 distance " << application->getSqrt3Dist()
-			<< " Dist btw node to bs "<< distanceBtwNodeAndBS
-			<< " 2 * dist "<<3 * m_k_mtrs);
+			NS_LOG_DEBUG("Sending to cluster head: " << m_cluster_head_address
+													 << " cluster head distance: " << ERGCNodeProps::distanceBTW(nodePosition, clusterPosition)
+													 << " Physical Transmission range: " << m_device->GetPhy()->GetTransRange()
+													 << " Sqrt 3 distance " << application->getSqrt3Dist()
+													 << " Dist btw node to bs " << distanceBtwNodeAndBS
+													 << " 2 * dist " << 3 * m_k_mtrs);
 			return m_cluster_head_address;
 		}
-		NS_LOG_DEBUG(" Physical Transmission range: "<< m_device->GetPhy()->GetTransRange()
-			<< " Sqrt 6 distance " << application->getSqrt6Dist()
-			<< " Dist btw node to bs "<< distanceBtwNodeAndBS
-			<< " 2 * dist "<<2 * m_k_mtrs);
+		NS_LOG_DEBUG(" Physical Transmission range: " << m_device->GetPhy()->GetTransRange()
+													  << " Sqrt 6 distance " << application->getSqrt6Dist()
+													  << " Dist btw node to bs " << distanceBtwNodeAndBS
+													  << " 2 * dist " << 2 * m_k_mtrs);
 		ClusterNeighborHeader bestClusterNeighbor = getBestClusterNeighbor(distanceBtwNodeAndBS, residualEnergy, nodePosition, p);
 		return bestClusterNeighbor.GetClusterHeadId();
 	}
