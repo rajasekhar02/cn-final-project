@@ -14,7 +14,7 @@ Tasks in the Algorithm Simulation:
 
 4. Tmax value has to be assumed be some constant value.
 
-Simulation App1:
+Simulation App 1:
 ================
 
 To run the simulation for 100 rounds with 
