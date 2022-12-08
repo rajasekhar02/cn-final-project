@@ -144,6 +144,14 @@ namespace ns3
 			// // // SendUp(p);
 			std::cout << from << " " << to << std::endl;
 			Ptr<AquaSimNetDevice> aqd = GetNetDevice();
+			Ptr<ERGCApplication> application = GetNetDevice()->GetNode()->GetApplication(0)->GetObject<ERGCApplication>();
+			std::string nodeType = application->GetNode()->GetObject<ERGCNodeProps>()->m_nodeType;
+			if (nodeType == "BS")
+			{
+				NS_LOG_DEBUG("Packet Received from node: " << ash.GetSAddr() << "to the base station");
+				p = 0;
+				return true;
+			}
 			aqd->Receive(p, 0, AquaSimAddress::ConvertFrom(m_device->GetAddress()), from);
 			return true;
 		}
