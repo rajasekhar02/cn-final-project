@@ -23,4 +23,10 @@ number of nodes : 100, 200, 300, 400, 500, 600
 Communication Range : 50, 60, 70, 80, 90, 100
 Average Residual Energy Output for the above after 100 simulations
 
-Number 
+PPT Algorithm Failure Points:
+==============================
+As we are using the random positioning what happens if there is no node in the first cube.
+
+I have implemented the algorithm for static placed nodes
+
+
