@@ -53,29 +53,30 @@ void initNodes()
     Ptr<ERGCNodeProps> ergcNodeProps = CreateObject<ERGCNodeProps>();
     ergcNodeProps->m_nodeType = "UWS";
     ergcNodeProps->m_BSPosition = baseStationCon.Get(0)->GetObject<MobilityModel>()->GetPosition();
+    std::cout<<ergcNodeProps->m_BSPosition<<std::endl;
     Ptr<AquaSimNetDevice> aqnd = asHelper.Create(*i, newDevice);
     ergcNodeProps->m_netDeviceInitialEnergy = newDevice->EnergyModel()->GetInitialEnergy();
     // ergcNodeProps->m_velocity = sceneparams.node_velocity;
-    // ergcNodeProps->m_BSAddress = AquaSimAddress::ConvertFrom(baseStationCon.Get(0)->GetDevice(0)->GetAddress());
+    ergcNodeProps->m_BSAddress = AquaSimAddress::ConvertFrom(baseStationCon.Get(0)->GetDevice(0)->GetAddress());
     (*i)->AggregateObject(ergcNodeProps);
     devices.Add(aqnd);
   }
   std::string positionRandomVariableStr = string_format("ns3::UniformRandomVariable[Min=1|Max=%d]",sceneparams.big_cube_x_mtrs);
-  // std::cout << "Initializing Nodes Mobility Model" <<positionRandomVariableStr<< std::endl;
+  std::cout << "Initializing Nodes Mobility Model" <<positionRandomVariableStr<< std::endl;
   nodeMobility.SetPositionAllocator("ns3::RandomBoxPositionAllocator", "X", StringValue(positionRandomVariableStr),
                                     "Y", StringValue(positionRandomVariableStr), "Z", StringValue(positionRandomVariableStr));
-  // nodeMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+  nodeMobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
   // nodeMobility.SetMobilityModel("ns3::RandomDirection2dMobilityModel",
   //                                 "Bounds",,
   //                                 "Speed",StringValue("ns3::ConstantRandomVariable[Constant=5]"),
   //                                 "Pause",StringValue("ns3::ConstantRandomVariable[Constant=0.2]")
   //                               );
-  nodeMobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
+  // nodeMobility.SetMobilityModel("ns3::ConstantVelocityMobilityModel");
   nodeMobility.Install(nodesCon);
-  for(uint n = 0; n< nodesCon.GetN();n++){
-    Ptr<ConstantVelocityMobilityModel> mob = nodesCon.Get(n)->GetObject<ConstantVelocityMobilityModel>();
-    mob->SetVelocity(Vector(sceneparams.node_velocity, 0, 0));
-  }
+  // for(uint n = 0; n< nodesCon.GetN();n++){
+  //   Ptr<ConstantVelocityMobilityModel> mob = nodesCon.Get(n)->GetObject<ConstantVelocityMobilityModel>();
+  //   mob->SetVelocity(Vector(sceneparams.node_velocity, 0, 0));
+  // }
 }
 
 void initBaseStation()
