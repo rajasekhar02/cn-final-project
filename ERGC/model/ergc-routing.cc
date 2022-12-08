@@ -210,7 +210,8 @@ namespace ns3
 		Vector nodePosition = application->getNodePosition();
 		std::cout<<nodePosition<<std::endl;
 		Vector clusterPosition = application->getClusterHeadInfo().GetNodePosition();
-		if (ash.GetDAddr() == baseStationAddress && distanceBtwNodeAndBS < (sqrt(3) * m_k_mtrs))
+		double maxDistanceToBS = std::max(2 * m_k_mtrs,m_device->GetPhy()->GetTransRange());
+		if (ash.GetDAddr() == baseStationAddress && distanceBtwNodeAndBS < maxDistanceToBS)
 		{
 			NS_LOG_DEBUG(" Physical Transmission range: "<< m_device->GetPhy()->GetTransRange()
 			<< " Sqrt 3 distance " << application->getSqrt3Dist()
@@ -232,7 +233,7 @@ namespace ns3
 		NS_LOG_DEBUG(" Physical Transmission range: "<< m_device->GetPhy()->GetTransRange()
 			<< " Sqrt 6 distance " << application->getSqrt6Dist()
 			<< " Dist btw node to bs "<< distanceBtwNodeAndBS
-			<< " 2 * dist "<<3 * m_k_mtrs);
+			<< " 2 * dist "<<2 * m_k_mtrs);
 		ClusterNeighborHeader bestClusterNeighbor = getBestClusterNeighbor(distanceBtwNodeAndBS, residualEnergy, nodePosition, p);
 		return bestClusterNeighbor.GetClusterHeadId();
 	}
