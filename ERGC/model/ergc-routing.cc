@@ -108,10 +108,13 @@ namespace ns3
 			ash.SetSize(ash.GetSize() + SR_HDR_LEN); // add the overhead of static routing's header
 			p->AddHeader(ash);
 		}
-		else if (!AmINextHop(p))
+		else if (!AmINextHop(p) && !AmIDst(p))
 		{
-			p->PeekHeader(ash);
-			std::cout << "Received from" << ash.GetSAddr() << " " << ash.GetNextHop() << " " << AquaSimAddress::ConvertFrom(m_device->GetAddress()) << std::endl;
+			p->RemoveHeader(ash);
+			SeqTsSizeHeader sqHeader;
+			p->PeekHeader(sqHeader);
+			std::cout<<"Seq no: "<<sqHeader.GetSeq()<<std::endl;
+			std::cout << "Received from: " << ash.GetSAddr() << " next-hop-node: " << ash.GetNextHop() << " " << AquaSimAddress::ConvertFrom(m_device->GetAddress()) << " "<<ash.GetDAddr()<< std::endl;
 			NS_LOG_INFO("Dropping packet " << p << " due to duplicate");
 			// drop(p, DROP_MAC_DUPLICATE);
 			p = 0;
@@ -124,8 +127,12 @@ namespace ns3
 		ash.SetNumForwards(numForwards);
 		p->AddHeader(ash);
 		Ptr<ERGCApplication> application = GetNetDevice()->GetNode()->GetApplication(0)->GetObject<ERGCApplication>();
-		std::cout << "Received from" << ash.GetSAddr() << std::endl;
-		if (AmIDst(p) || (ash.GetDirection() == AquaSimHeader::UP))
+		// std::cout << "Received from" << ash.GetSAddr() << std::endl;
+		// std::cout << "Received from" << ash.GetSAddr() 
+		// << "next-hop-node: " << ash.GetNextHop() << " " 
+		// << AquaSimAddress::ConvertFrom(m_device->GetAddress()) 
+		// << " "<<ash.GetDAddr()<< std::endl;
+		if (AmIDst(p) || (ash.GetDAddr() == AquaSimAddress::GetBroadcast() && ash.GetDirection() == AquaSimHeader::UP))
 		{
 			NS_LOG_INFO("I am destination. Sending up.");
 			AquaSimHeader asHeader;
@@ -143,6 +150,7 @@ namespace ns3
 
 		// find the next hop and forward
 		AquaSimAddress next_hop = FindNextHop(p);
+		std::cout<<"next hop node: "<<next_hop<<std::endl;
 		if (next_hop != AquaSimAddress::GetBroadcast())
 		{
 			SendDown(p, next_hop, Seconds(0.0));
@@ -195,25 +203,38 @@ namespace ns3
 			return AquaSimAddress::GetBroadcast();
 		}
 		Ptr<ERGCApplication> application = GetNetDevice()->GetNode()->GetApplication(0)->GetObject<ERGCApplication>();
-		std::cout << "Sending to cluster head" << m_cluster_head_address << "from: " << ash.GetSAddr() << std::endl;
-		if (!application->isClusterHead())
-		{
-			return m_cluster_head_address;
-		}
 		double distanceBtwNodeAndBS = application->getDistBtwNodeAndBS();
 		double residualEnergy = application->getResidualEnergy();
 		AquaSimAddress baseStationAddress = application->getBaseStationAddress();
 		uint32_t m_k_mtrs = application->getK();
 		Vector nodePosition = application->getNodePosition();
-		// std::map<AquaSimAddress, ClusterNeighborHeader>::iterator it2 = m_neighbor_cluster_table.begin();
-		if (ash.GetDAddr() == baseStationAddress && distanceBtwNodeAndBS < 2 * m_k_mtrs)
+		std::cout<<nodePosition<<std::endl;
+		Vector clusterPosition = application->getClusterHeadInfo().GetNodePosition();
+		if (ash.GetDAddr() == baseStationAddress && distanceBtwNodeAndBS < (sqrt(3) * m_k_mtrs))
 		{
+			NS_LOG_DEBUG(" Physical Transmission range: "<< m_device->GetPhy()->GetTransRange()
+			<< " Sqrt 3 distance " << application->getSqrt3Dist()
+			<< " Dist btw node to bs "<< distanceBtwNodeAndBS
+			<< " 2 * dist "<<3 * m_k_mtrs);
+			m_device->GetPhy()->SetTransRange(application->getSqrt6Dist());
 			return baseStationAddress;
 		}
+		if (!application->isClusterHead())
+		{
+			NS_LOG_DEBUG("Sending to cluster head: " << m_cluster_head_address 
+			<< " cluster head distance: " << ERGCNodeProps::distanceBTW(nodePosition, clusterPosition) 
+			<< " Physical Transmission range: "<< m_device->GetPhy()->GetTransRange()
+			<< " Sqrt 3 distance " << application->getSqrt3Dist()
+			<< " Dist btw node to bs "<< distanceBtwNodeAndBS
+			<< " 2 * dist "<<3 * m_k_mtrs);
+			return m_cluster_head_address;
+		}
+		NS_LOG_DEBUG(" Physical Transmission range: "<< m_device->GetPhy()->GetTransRange()
+			<< " Sqrt 6 distance " << application->getSqrt6Dist()
+			<< " Dist btw node to bs "<< distanceBtwNodeAndBS
+			<< " 2 * dist "<<3 * m_k_mtrs);
 		ClusterNeighborHeader bestClusterNeighbor = getBestClusterNeighbor(distanceBtwNodeAndBS, residualEnergy, nodePosition, p);
-		// std::map<AquaSimAddress, AquaSimAddress>::iterator it = m_rTable.find(ash.GetDAddr());
-		// return it == m_rTable.end() ? AquaSimAddress::GetBroadcast() : it->second;
-		return bestClusterNeighbor.GetClusterHeadId() == 0 ? AquaSimAddress::GetBroadcast() : bestClusterNeighbor.GetClusterHeadId();
+		return bestClusterNeighbor.GetClusterHeadId();
 	}
 
 } // namespace ns3

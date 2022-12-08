@@ -55,8 +55,13 @@ namespace ns3
 
         u_int32_t getK();
 
+        ClusterHeadSelectionHeader getClusterHeadInfo();
+
         bool isClusterHead();
 
+        double getSqrt3Dist();
+
+        double getSqrt6Dist();
     protected:
         virtual void DoDispose(void);
 
@@ -72,9 +77,7 @@ namespace ns3
 
         ns3::AquaSimAddress getNodeId();
 
-        double getSqrt3Dist();
-
-        double getSqrt6Dist();
+       
 
         void
         handleBSStartEvent();
@@ -156,7 +159,7 @@ namespace ns3
         std::map<AquaSimAddress, ClusterHeadSelectionHeader> m_clusterList; // key -> address of the child node of this cluster header
         std::map<AquaSimAddress, Ptr<Socket>> m_clusterSocketList;
         std::map<AquaSimAddress, ClusterNeighborHeader> m_neighborClusterTable; // key -> address of the neighbor cluster header
-        Time m_maxClusterHeadSelectionTime{"25s"};
+        Time m_maxClusterHeadSelectionTime{"9s"};
         Time m_broadcastClusHeadTimeOut;
         Time m_broadcastClusHeadStartTime;
         /// Traced Callback: transmitted packets.
