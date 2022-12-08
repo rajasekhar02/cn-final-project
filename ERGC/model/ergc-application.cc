@@ -425,7 +425,8 @@ namespace ns3
     if (!m_clusterHead)
     {
       ergcRouting->m_cluster_head_address = m_clusterHeadInfo.GetNodeId();
-      initDataSocket();
+      Simulator::Schedule(Time("100s"), &ERGCApplication::initDataSocket, this);
+      // initDataSocket();
       return;
     }
 
@@ -446,42 +447,44 @@ namespace ns3
     m_clus_socket->Send(packet);
     m_lastStartTime = Simulator::Now();
   }
-  void ERGCApplication::initDataSocket(){
+  void ERGCApplication::initDataSocket()
+  {
     if (!m_socket)
     {
-      m_socket = Socket::CreateSocket (GetNode (), m_tid);
+      m_socket = Socket::CreateSocket(GetNode(), m_tid);
       int ret = -1;
       PacketSocketAddress peerSocket;
-      peerSocket.SetAllDevices();
+      // peerSocket.SetPhysicalAddress();
+      peerSocket.SetSingleDevice(0);
       peerSocket.SetPhysicalAddress((Address)getBaseStationAddress());
       peerSocket.SetProtocol(0);
-      if (InetSocketAddress::IsMatchingType (peerSocket) ||
-                   PacketSocketAddress::IsMatchingType (peerSocket))
+      if (InetSocketAddress::IsMatchingType(peerSocket) ||
+          PacketSocketAddress::IsMatchingType(peerSocket))
       {
-        ret = m_socket->Bind ();
+        ret = m_socket->Bind();
       }
-      
+
       if (ret == -1)
       {
-        NS_FATAL_ERROR ("Failed to bind socket");
+        NS_FATAL_ERROR("Failed to bind socket");
       }
 
-      m_socket->Connect (peerSocket);
-      m_socket->SetAllowBroadcast (false);
-      m_socket->ShutdownRecv ();
+      m_socket->Connect(peerSocket);
+      m_socket->SetAllowBroadcast(false);
+      m_socket->ShutdownRecv();
 
-      m_socket->SetConnectCallback (
-        MakeCallback (&ERGCApplication::ConnectionSucceeded, this),
-        MakeCallback (&ERGCApplication::ConnectionFailed, this));
+      m_socket->SetConnectCallback(
+          MakeCallback(&ERGCApplication::ConnectionSucceeded, this),
+          MakeCallback(&ERGCApplication::ConnectionFailed, this));
     }
-  m_cbrRateFailSafe = m_cbrRate;
+    m_cbrRateFailSafe = m_cbrRate;
 
-  // Insure no pending event
-  CancelEvents ();
-  // If we are not yet connected, there is nothing to do here
-  // The ConnectionComplete upcall will start timers at that time
-  //if (!m_connected) return;
-  ScheduleStartEvent ();
+    // Insure no pending event
+    CancelEvents();
+    // If we are not yet connected, there is nothing to do here
+    // The ConnectionComplete upcall will start timers at that time
+    // if (!m_connected) return;
+    ScheduleStartEvent();
   }
   // send normal message methods
   void ERGCApplication::StopApplication() // Called at time specified by Stop
@@ -530,7 +533,6 @@ namespace ns3
     ScheduleNextTx(); // Schedule the send packet event
     ScheduleStopEvent();
   }
-
 
   void ERGCApplication::ScheduleNextTx()
   {
@@ -647,7 +649,6 @@ namespace ns3
 
     ScheduleStartEvent();
   }
-
 
   // Private helpers
   void ERGCApplication::ConnectionSucceeded(Ptr<Socket> socket)

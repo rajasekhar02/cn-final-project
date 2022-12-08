@@ -53,6 +53,10 @@ namespace ns3
 
         ns3::Vector getNodePosition();
 
+        u_int32_t getK();
+
+        bool isClusterHead();
+
     protected:
         virtual void DoDispose(void);
 
@@ -62,10 +66,6 @@ namespace ns3
         virtual void StopApplication(void);  // Called at time specified by Stop
 
         // helpers
-        bool isClusterHead();
-
-        u_int32_t getK();
-
         ns3::Vector getBSPosition();
 
         ns3::Vector getSCIndex();
@@ -112,18 +112,18 @@ namespace ns3
         void initDataSocket();
 
         void StartSending();
-    
+
         void StopSending();
-    
-        void SendPacket ();
 
-        void ScheduleNextTx ();
+        void SendPacket();
 
-        void ScheduleStartEvent ();
+        void ScheduleNextTx();
 
-        void ScheduleStopEvent ();
+        void ScheduleStartEvent();
 
-        void CancelEvents ();
+        void ScheduleStopEvent();
+
+        void CancelEvents();
 
         Address m_local;                     //!< Local address to bind to
         bool m_connected;                    //!< True if connected
