@@ -45,7 +45,7 @@ namespace ns3
 		int base_station_z = 0;
 		int simulation_rounds = 100;
 		int no_of_sinks = 1;
-		int no_of_nodes = 15;
+		int no_of_nodes = 25;
 		int k_mtrs = 2.5; // edit the node_communication_range_mtrs also to the same value
 		int node_velocity = 1;
 		int node_communication_range_mtrs = 5;

@@ -62,6 +62,7 @@ namespace ns3
         double getSqrt3Dist();
 
         double getSqrt6Dist();
+
     protected:
         virtual void DoDispose(void);
 
@@ -76,8 +77,6 @@ namespace ns3
         ns3::Vector getSCIndex();
 
         ns3::AquaSimAddress getNodeId();
-
-       
 
         void
         handleBSStartEvent();

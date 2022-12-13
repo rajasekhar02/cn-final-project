@@ -437,7 +437,7 @@ namespace ns3
       NS_LOG_DEBUG("Started sending data packets");
       ergcRouting->m_cluster_head_address = m_clusterHeadInfo.GetNodeId();
       device->GetPhy()->SetTransRange(getSqrt3Dist());
-      Simulator::Schedule(Time("10s"), &ERGCApplication::initDataSocket, this);
+      Simulator::Schedule(Time("9s"), &ERGCApplication::initDataSocket, this);
       // initDataSocket();
       // Ptr<AquaSimNetDevice> device = GetNode()->GetDevice(0)->GetObject<AquaSimNetDevice>();
       return;
