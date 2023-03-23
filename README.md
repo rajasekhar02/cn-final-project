@@ -1,89 +1,27 @@
 # Computer Networks Final Project
 
-## Terminologies
-TWSN = Terrestrial Wireless Sensor Networks
+In this project I have take a research paper which proposes a Energy efficient Grid Routing based on 3d Cubes(EGRC) in Underwater Acoustic Sensor Networks(UASN). I used NS-3 and Aquasim to simulate this protocol.
 
-SC  = Small Cubes
+## Implementation
 
-WSN = Wireless Sensor Network Nodes
+I have done the following tasks:
+- [x] fix the compiler issues for aquasim module
+- [x] Implement sending the cube length to all the nodes 
+- [x] Based on the cube length determine the Small Cube Id
+- [ ] Based on the 
+- [x] written the driver code for the simulation
+- [ ] 
+3. 
 
-BS = Base Station node
+## Project Layout:
+I have divided the Project into 4 branches:
 
-BC = Big Cube
+aquasim: This branch contains the code related to aquasim module. I have fixed compiler issues when using this module with NS-3.35.
 
-NCT = Neighbour Cluster Table
+contrib: This branch contains the code related to contrib folder in the NS-3.35. Here I have implement the ERGC protocol as module.
 
-NFP = Next-Hop finding problem
+scratch: this branch contains the code that triggers the simulation.
 
-lambda and Mu = the parameters to value the importance of energe and delay
 
-RT = Route Table
 
-Vertex(i) = possibility of being a next hop node
----
-
-## 3D Geospatial Division 
-
-k = SC's edge length relates to the communication range of node c
-
-Calculation related to Nodes position and their SC identifier
-
-G(m,n,h) = SC identifier
-
-i(x,y,z) = node i coordinates
-
-m = (k - (x mod k) + x) / k
-
-n = (k - (x mod k) + x) / k
-
-h = (k - (|z| mode k) + |z|) / k
-
----
-
-D(i,bs) = Distance between node and base station by its own coordinates
-
-D(i,j) = sqrt( pow(x<sub>i</sub> - x<sub>j</sub>, 2) + pow(y<sub>i</sub> - y<sub>j</sub>, 2) + pow(z<sub>i</sub> - z<sub>j</sub>, 2) )
-
----
-
-## Energy Consumption Model
-
-E<sub>tx</sub> = Energy Consumption for a node to transmit bit data packets to another node
-
-Below are the equation to calculate based on 
-
-d = distance between the transmitter and receiver
-
-d<sub>0</sub> = threshold distance to transmit data packets
-
-if d < d<sub>0</sub> : l * ε<sub>elec</sub> + l * ε<sub>fs</sub>d<sup>2</sup>
-
-else : l * ε<sub>elec</sub> + l * ε<sub>mp</sub>d<sup>4</sup>
-
-ε<sub>fs</sub> = transmit amplifier  coefficient of free space
-
-ε<sub>mp</sub> = transmit amplifier  coefficient of multipath
-
----
-
-E<sub>Rx</sub> = Energy Consumption for node to receive bit data packets 
-
-E<sub>Rx</sub> = l * ε<sub>elec</sub> 
-
----
-
-a(f)^d
-
-we can substitute the absorption coefficient in the Energy consumption formula
-
-a(f) = absorption Coefficient
-
-f = frequency of acoustic signal
-
-d = distance between transmitter and receiver 
-
----
-## Delay Model
-
-**Transmission and reception time (t<sub>ij</sub>)**
-
+Chanllenges Faced:
