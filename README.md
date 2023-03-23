@@ -4,7 +4,7 @@ In this project I have take a research paper which proposes a Energy efficient G
 
 
 ## Project Layout:
-I have divided the Project into 4 branches and need place all these files in the NS 3.35:
+I have divided the Project into 4 branches and need place all these folders in the NS 3.35:
 
 **aquasim:** This branch contains the code related to aquasim module. I have fixed compiler issues when using this module with NS-3.35.
 
@@ -12,7 +12,8 @@ I have divided the Project into 4 branches and need place all these files in the
 
 **scratch:** This branch contains the code that triggers the simulation.
 
-**scratch/makefile:** This file contains commands to execute the project.
+
+**Note:scratch/makefile:** This file contains commands to execute the project.
 
 ## Implementation
 I have done the following tasks:
