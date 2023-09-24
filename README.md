@@ -17,7 +17,8 @@ I have divided the Project into 4 branches and need to place all these folders i
 
 ## Implementation
 I have done the following tasks:
-- [x] fix the compiler issues for aquasim module
+- [x] fix the compiler issues for Aquasim module
+- [x] Setup debugging launch configuration file for VS Code
 - [x] Implement sending the cube length to all the nodes 
 - [x] Based on the cube length determine the Small Cube (cluster) Id
 - [x] Elect a leader for the Cluster
